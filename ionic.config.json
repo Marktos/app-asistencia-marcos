@@ -1,0 +1,7 @@
+{
+  "name": "app-asistencia-marcos",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
