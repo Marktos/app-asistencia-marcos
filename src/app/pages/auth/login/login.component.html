@@ -1,0 +1,44 @@
+<!-- <ion-card>
+  <h2>Inicio de Sesion</h2>
+  <div>
+    <form action="">
+      <div>
+        <ion-input
+          label="Email input"
+          labelPlacement="floating"
+          type="email"
+          placeholder="email@domain.com"
+        ></ion-input>
+      </div>
+      <div>
+        <ion-input
+          label="Password input"
+          labelPlacement="floating"
+          type="password"
+          value="password"
+        ></ion-input>
+      </div>
+      <ion-button>Iniciar Sesion</ion-button>
+    </form>
+  </div>
+</ion-card> -->
+<ion-content [fullscreen]="true">
+  <ion-card>
+    <div class="centered-box">
+      <h1 class="ion-text-center">Login</h1>
+      <form>
+        <div class="">
+          <ion-item class="ion-margin-bottom">
+            <ion-input placeholder="Correo Electronico"></ion-input>
+            <ion-icon src="./assets/icon/person-outline.svg"></ion-icon>
+          </ion-item>
+          <ion-item class="ion-margin-bottom ion-border-1">
+            <ion-input placeholder="Password"></ion-input>
+            <ion-icon src="./assets/icon/lock-closed-outline.svg"></ion-icon>
+          </ion-item>
+        </div>
+        <ion-button expand="block">Iniciar Sesion</ion-button>
+      </form>
+    </div>
+  </ion-card>
+</ion-content>
