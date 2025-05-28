@@ -1,3 +1,36 @@
-<p>
-  register works!
-</p>
+<ion-content [fullscreen]="true" class="register-content">
+  <div class="register-container">
+    <ion-card class="register-card">
+      <ion-card-header>
+        <ion-card-title class="ion-text-center">Crear Cuenta</ion-card-title>
+        <ion-card-subtitle class="ion-text-center">Regístrate para comenzar</ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <form>
+          <ion-item lines="none" class="input-item">
+            <ion-icon slot="start" name="person-outline" class="input-icon"></ion-icon>
+            <ion-input type="text" placeholder="Nombre completo"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="input-item">
+            <ion-icon slot="start" name="mail-outline" class="input-icon"></ion-icon>
+            <ion-input type="email" placeholder="Correo electrónico"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="input-item">
+            <ion-icon slot="start" name="lock-closed-outline" class="input-icon"></ion-icon>
+            <ion-input type="password" placeholder="Contraseña"></ion-input>
+          </ion-item>
+
+          <ion-button expand="block" class="register-button" type="submit">Registrarse</ion-button>
+
+          <div class="login-text ion-text-center">
+            ¿Ya tienes una cuenta?
+            <a routerLink="/auth/login">Inicia sesión</a>
+          </div>
+        </form>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

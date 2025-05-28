@@ -21,7 +21,7 @@ import { LoginForm } from 'src/app/core/interfaces/login.interface';
 
 @Component({
   standalone: true,
-  imports: [IonButton, IonInput, IonItem, IonCard, IonIcon, IonContent, IonNav, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,  ],
+  imports: [IonButton, IonInput, IonItem, IonCard, IonIcon, IonContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,  ],
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],

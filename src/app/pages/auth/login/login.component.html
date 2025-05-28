@@ -1,57 +1,3 @@
-<!-- <ion-content [fullscreen]="true" >
-  <ion-card>
-    <div class="centered-box">
-      <h1>Inicio de Sesion</h1>
-    <div>
-      <form action="">
-        <ion-item>
-          <ion-input
-            label="Email input"
-            labelPlacement="floating"
-            type="email"
-            placeholder="email@domain.com"
-          ></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-input
-            label="Password input"
-            labelPlacement="floating"
-            type="password"
-            value="password"
-          ></ion-input>
-        </ion-item>
-        <ion-button  class="button-sesion" expand="block"></ion-button>
-      </form>
-      <div>
-        <ion-nav [root]="Register"></ion-nav>
-        <h4>No tenes cuenta? Crea una aqui</h4>
-      </div>
-    </div>
-    </div>
-    
-  </ion-card>
-  
-</ion-content> -->
-
-<!-- <ion-card>
-  <div class="centered-box">
-    <h1 class="ion-text-center">Login</h1>
-    <form>
-      <div class="">
-        <ion-item class="ion-margin-bottom">
-          <ion-input placeholder="Correo Electronico"></ion-input>
-          <ion-icon src="./assets/icon/person-outline.svg"></ion-icon>
-        </ion-item>
-        <ion-item class="ion-margin-bottom ion-border-1">
-          <ion-input placeholder="Password"></ion-input>
-          <ion-icon src="./assets/icon/lock-closed-outline.svg"></ion-icon>
-        </ion-item>
-      </div>
-      <ion-button expand="block">Iniciar Sesion</ion-button>
-    </form>
-  </div>
-</ion-card> -->
-
 <ion-content (ngSubmit)="login()" [fullscreen]="true" class="login-content">
   <div class="login-container">
     <ion-card class="login-card">
@@ -76,7 +22,7 @@
 
           <div class="register-text ion-text-center">
             ¿No tienes una cuenta?
-            <a routerLink="/auth/register">Regístrate</a>
+            <a routerLink="../auth/register">Regístrate</a>
           </div>
         </form>
       </ion-card-content>

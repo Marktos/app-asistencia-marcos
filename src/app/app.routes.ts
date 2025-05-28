@@ -2,10 +2,6 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
-  },
-  {
     path: '',
     loadComponent: () =>
       import('./pages/auth/login/login.component').then(
@@ -13,22 +9,26 @@ export const routes: Routes = [
       ),
   },
   {
-    path: '/register',
+    path: 'register',
     loadComponent: () =>
       import('./pages/auth/register/register.component').then(
         (m) => m.RegisterComponent
       ),
   },
   {
-    path: '/panel-asistencia',
+    path: 'panel-asistencia',
     loadComponent: () =>
       import('./pages/asistencia-panel/asistencia-panel.component').then(
         (m) => m.AsistenciaPanelComponent
       ),
   },
   {
-    path: '',
-    redirectTo: '',
-    pathMatch: 'full',
+    path: 'home',
+    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
   },
+  // {
+  //   path: '',
+  //   redirectTo: '',
+  //   pathMatch: 'full',
+  // },
 ];

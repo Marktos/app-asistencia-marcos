@@ -2,8 +2,8 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import { provideFirebaseApp } from '@angular/fire/app';
-import { initializeApp } from 'firebase/app';
+// import { provideFirebaseApp } from '@angular/fire/app';
+// import { initializeApp } from 'firebase/app';
 
 const $BASE_DEV = 'http://localhost:3000'
 
