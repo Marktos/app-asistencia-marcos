@@ -1,0 +1,40 @@
+.asistencia-content {
+  padding: 16px;
+}
+
+.perfil-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.perfil-header {
+  margin-top: 10px;
+}
+
+.perfil-icon {
+  font-size: 100px;
+  color: #2fdf75; // Verde
+}
+
+.perfil-info {
+  margin-top: 10px;
+}
+
+.info-line {
+  margin: 4px 0;
+  font-weight: 500;
+}
+
+.turnos-section {
+  margin-top: 20px;
+}
+
+ion-card[button] {
+  cursor: pointer;
+  background-color: #1e1e1e;
+  color: white;
+  margin-bottom: 10px;
+}
+

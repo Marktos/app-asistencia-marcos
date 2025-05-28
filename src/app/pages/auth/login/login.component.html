@@ -1,31 +1,48 @@
-<ion-content (ngSubmit)="login()" [fullscreen]="true" class="login-content">
+<ion-content [fullscreen]="true" class="login-content">
   <div class="login-container">
-    <ion-card class="login-card">
-      <ion-card-header>
-        <ion-card-title class="ion-text-center">Bienvenido</ion-card-title>
-        <ion-card-subtitle class="ion-text-center">Inicia sesión para continuar</ion-card-subtitle>
-      </ion-card-header>
+    <!-- Formulario principal con [formGroup] y (ngSubmit) -->
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <ion-card class="login-card">
+        <ion-card-header>
+          <ion-card-title class="ion-text-center">Bienvenido</ion-card-title>
+          <ion-card-subtitle class="ion-text-center">Inicia sesión para continuar</ion-card-subtitle>
+        </ion-card-header>
 
-      <ion-card-content>
-        <form>
+        <ion-card-content>
+          <!-- Email -->
           <ion-item lines="none" class="input-item">
             <ion-icon slot="start" name="mail-outline" class="input-icon"></ion-icon>
-            <ion-input  type="email" placeholder="Correo electrónico"></ion-input>
+            <ion-input
+              type="email"
+              placeholder="Correo electrónico"
+              formControlName="email"
+              required>
+            </ion-input>
           </ion-item>
 
+          <!-- Contraseña -->
           <ion-item lines="none" class="input-item">
             <ion-icon slot="start" name="lock-closed-outline" class="input-icon"></ion-icon>
-            <ion-input type="password" placeholder="Contraseña"></ion-input>
+            <ion-input
+              type="password"
+              placeholder="Contraseña"
+              formControlName="password"
+              required>
+            </ion-input>
           </ion-item>
 
-          <ion-button expand="block" class="login-button" type="submit">Iniciar Sesión</ion-button>
+          <!-- Botón de envío -->
+          <ion-button expand="block" class="login-button" type="submit">
+            Iniciar Sesión
+          </ion-button>
 
+          <!-- Enlace de registro -->
           <div class="register-text ion-text-center">
             ¿No tienes una cuenta?
-            <a routerLink="../auth/register">Regístrate</a>
+            <ion-router-link routerLink="/auth/register">Regístrate</ion-router-link>
           </div>
-        </form>
-      </ion-card-content>
-    </ion-card>
+        </ion-card-content>
+      </ion-card>
+    </form>
   </div>
 </ion-content>
