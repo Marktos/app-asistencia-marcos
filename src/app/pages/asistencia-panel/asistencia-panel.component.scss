@@ -1,40 +1,431 @@
 .asistencia-content {
+  --background: var(--ion-color-light);
+
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
+}
+
+// Profile Section
+.profile-section {
+  padding: 16px 16px 8px;
+}
+
+.profile-card {
+  margin: 0;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 24px;
+  gap: 16px;
+}
+
+.avatar-container {
+  position: relative;
+}
+
+.avatar-icon {
+  font-size: 64px;
+  color: white;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  background: #10b981;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+}
+
+.profile-role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.profile-details {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+
+  ion-icon {
+    font-size: 18px;
+    opacity: 0.9;
+  }
+}
+
+// Stats Section
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   padding: 16px;
 }
 
-.perfil-card {
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease;
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
-.perfil-header {
-  margin-top: 10px;
+.stat-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+
+  &.primary {
+    color: var(--ion-color-primary);
+  }
+
+  &.success {
+    color: var(--ion-color-success);
+  }
+
+  &.secondary {
+    color: var(--ion-color-secondary);
+  }
 }
 
-.perfil-icon {
-  font-size: 100px;
-  color: #2fdf75; // Verde
+.stat-info {
+  width: 100%;
 }
 
-.perfil-info {
-  margin-top: 10px;
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--ion-text-color);
 }
 
-.info-line {
-  margin: 4px 0;
+.stat-label {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin: 0;
   font-weight: 500;
 }
 
-.turnos-section {
-  margin-top: 20px;
+// Section Header
+.section-header {
+  padding: 24px 16px 12px;
 }
 
-ion-card[button] {
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+  margin: 0;
+
+  ion-icon {
+    font-size: 22px;
+    color: var(--ion-color-primary);
+  }
+}
+
+// Turnos Grid
+.turnos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.turno-card {
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   cursor: pointer;
-  background-color: #1e1e1e;
-  color: white;
-  margin-bottom: 10px;
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.morning {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+
+    @media (prefers-color-scheme: dark) {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    }
+  }
+
+  &.afternoon {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+
+    @media (prefers-color-scheme: dark) {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+  }
+
+  &.night {
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+    color: white;
+
+    @media (prefers-color-scheme: dark) {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    }
+  }
 }
 
+.turno-icon {
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+
+  ion-icon {
+    font-size: 32px;
+  }
+}
+
+.turno-content {
+  flex: 1;
+
+  h4 {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .turno-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-size: 14px;
+    opacity: 0.95;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+
+  ion-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+  }
+}
+
+// Actions Grid
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 16px 24px;
+}
+
+.action-card {
+  margin: 0;
+  border-radius: 16px;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  ion-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-text-color);
+  }
+}
+
+// Modal Styles
+.modal-content {
+  --background: var(--ion-color-light);
+
+  @media (prefers-color-scheme: dark) {
+    --background: #0f172a;
+  }
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.turno-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.turno-modal-icon {
+  font-size: 80px;
+  color: var(--ion-color-primary);
+  margin-bottom: 16px;
+}
+
+.turno-header h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+
+.turno-fecha {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.detail-card {
+  margin: 0 0 24px;
+  border-radius: 16px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+  }
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--ion-color-light);
+
+    @media (prefers-color-scheme: dark) {
+      border-bottom-color: #334155;
+    }
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  ion-icon {
+    font-size: 24px;
+    color: var(--ion-color-primary);
+    margin-top: 2px;
+  }
+}
+
+.detail-label {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.detail-value {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.modal-actions {
+  padding-top: 8px;
+}
+
+.start-button {
+  --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --border-radius: 14px;
+  height: 56px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

@@ -1,29 +1,86 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
-import { IonContent, IonCard, IonCardContent, IonAvatar, IonIcon,IonButton, IonModal, IonHeader, IonToolbar, IonTitle, IonInput, IonItem, IonButtons, ModalController, IonCardHeader, IonCardTitle, IonCardSubtitle } from '@ionic/angular/standalone';
-import { TurnoCardComponent } from 'src/app/shared/components/turno-card/turno-card.component';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import {
+  IonContent,
+  IonCard,
+  IonCardContent,
+  IonIcon,
+  IonButton,
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardSubtitle,
+  IonBadge
+} from '@ionic/angular/standalone';
 
 @Component({
   standalone: true,
-  imports: [IonCardSubtitle, IonCardTitle, IonCardHeader, IonButtons, IonItem, IonInput, IonTitle, IonToolbar, IonHeader, IonModal, IonContent, IonCard, IonCardContent, IonAvatar, IonIcon, TurnoCardComponent, IonButton, ],
+  imports: [
+    CommonModule,
+    RouterLink,
+    IonContent,
+    IonCard,
+    IonCardContent,
+    IonIcon,
+    IonButton,
+    IonModal,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardSubtitle,
+    IonBadge
+  ],
   selector: 'app-asistencia-panel',
   templateUrl: './asistencia-panel.component.html',
   styleUrls: ['./asistencia-panel.component.scss'],
 })
-export class AsistenciaPanelComponent implements AfterViewInit {
+export class AsistenciaPanelComponent implements OnInit, AfterViewInit {
   turnoSeleccionado: any = null;
   presentingElement: any = null;
+  modalOpen: boolean = false;
+  currentDate: Date = new Date();
 
-  // Simulamos los turnos por ahora
+  // Simulamos los turnos
   turnos = [
     {
       titulo: 'Turno Mañana',
       fecha: new Date(),
-      horario: '8:00 a 12:00',
-      usuario: 'Juan Pérez'
+      horario: '8:00 - 12:00',
+      usuario: 'Juan Pérez',
+      tipo: 'morning'
+    },
+    {
+      titulo: 'Turno Tarde',
+      fecha: new Date(),
+      horario: '14:00 - 18:00',
+      usuario: 'Juan Pérez',
+      tipo: 'afternoon'
+    },
+    {
+      titulo: 'Turno Noche',
+      fecha: new Date(),
+      horario: '20:00 - 00:00',
+      usuario: 'Juan Pérez',
+      tipo: 'night'
     }
   ];
 
-  constructor(private modalController: ModalController) {}
+  constructor() {}
+
+  ngOnInit() {
+    // Actualizar fecha cada minuto
+    setInterval(() => {
+      this.currentDate = new Date();
+    }, 60000);
+  }
 
   ngAfterViewInit(): void {
     this.presentingElement = document.querySelector('ion-app');
@@ -31,26 +88,29 @@ export class AsistenciaPanelComponent implements AfterViewInit {
 
   abrirModal(turno: any) {
     this.turnoSeleccionado = turno;
+    this.modalOpen = true;
   }
 
-  onWillDismiss(event: any) {
+  onWillDismiss() {
+    this.modalOpen = false;
     this.turnoSeleccionado = null;
   }
 
   cancel() {
-    const modal = document.querySelector('ion-modal');
-    modal?.dismiss();
-  }
-
-  confirm() {
-    // Confirmación lógica
-    console.log('Turno confirmado');
-    const modal = document.querySelector('ion-modal');
-    modal?.dismiss();
+    this.modalOpen = false;
   }
 
   comenzarTurno() {
-    // Acá iría la lógica: validar coordenadas, sacar foto, etc.
-    console.log('Comenzando turno para:', this.turnoSeleccionado);
+    console.log('Comenzando turno:', this.turnoSeleccionado);
+
+    // Aquí irá la lógica de:
+    // 1. Validar ubicación
+    // 2. Tomar foto
+    // 3. Registrar asistencia
+
+    this.modalOpen = false;
+
+    // TODO: Implementar navegación a página de registro
+    // this.router.navigate(['/registro-asistencia']);
   }
 }

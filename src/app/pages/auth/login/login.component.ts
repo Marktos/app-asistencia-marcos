@@ -1,60 +1,85 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonInput,
   IonItem,
-  IonCard,
   IonIcon,
   IonContent,
-  IonNav,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
   IonRouterLink
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { LoginForm } from 'src/app/core/interfaces/login.interface';
-import { AsistenciaPanelComponent } from '../../asistencia-panel/asistencia-panel.component';
-
-
 
 @Component({
   standalone: true,
-  imports: [IonButton, IonInput, IonItem, IonCard, IonIcon, IonContent, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, IonRouterLink, RouterLink, ReactiveFormsModule, ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    IonButton,
+    IonInput,
+    IonItem,
+    IonIcon,
+    IonContent,
+    IonRouterLink
+  ],
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
-    _asistenciaPanel = AsistenciaPanelComponent
-    loginForm!: FormGroup;
-    errorMessage: string = '';
+  loginForm!: FormGroup;
+  showPassword: boolean = false;
+  errorMessage: string = '';
 
   constructor(
-    private _form : FormBuilder,
+    private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
-  ) {
-    this.loginForm = this._form.group<LoginForm>({
-            email: this._form.nonNullable.control('', [Validators.required, Validators.email]),
-            password: this._form.nonNullable.control('', [Validators.required])
-        });
+  ) {}
+
+  ngOnInit() {
+    this.initForm();
   }
 
-  ngOnInit() {}
+  initForm() {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 
   login() {
-    // if (this.form.invalid) return;
-    //     const { email, password } = this.form.getRawValue();
-    //     this.auth.login(email, password).subscribe({
-    //         next: (response) => {
-    //             this.router.navigate(['/panel-asistencia']);
-    //         },
-    //         error: (error) => console.log(error)
-    //     });
-    this.router.navigate(['/panel-asistencia'])
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
+
+    // Por ahora navegamos directo, después conectaremos con el backend
+    const { email, password } = this.loginForm.value;
+    console.log('Login attempt:', { email, password });
+
+    // Simulamos login exitoso
+    this.router.navigate(['/panel-asistencia']);
+
+    /*
+    // Cuando tengas backend, descomenta esto:
+    this.auth.login(email, password).subscribe({
+      next: (response) => {
+        console.log('Login successful', response);
+        this.router.navigate(['/panel-asistencia']);
+      },
+      error: (error) => {
+        console.error('Login error', error);
+        this.errorMessage = 'Credenciales inválidas';
+      }
+    });
+    */
   }
 }

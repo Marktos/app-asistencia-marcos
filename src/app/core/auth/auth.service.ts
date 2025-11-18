@@ -1,94 +1,119 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
-// import { SignInService } from '../../modules/auth/sign-in/services/sign-in.service';
-import { environment } from '../../../environments/environment';
-import { StorageService } from '../../shared/services/data-access/storage.service';
-
-interface LoginResponse {
-    success: boolean;
-    message: string;
-    result: {
-        token: string;
-    };
-    errors: any[];
-    menu: any[];
-    token: string | null;
-}
+import { BehaviorSubject, Observable } from 'rxjs';
+import { DatabaseService } from '../services/database.service';
+import { User, LoginCredentials, RegisterData } from '../models/user.model';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class AuthService {
-    private _authenticated: boolean = false;
 
-    constructor(
-        private http: HttpClient,
-        private router: Router,
-        private storageService: StorageService
-    ) {}
+  private currentUserSubject: BehaviorSubject<User | null>;
+  public currentUser$: Observable<User | null>;
 
-    /**
-     * Seteamos y obtenemos el token
-     */
-    set accessToken(token: string) {
-        this.storageService.set('accessToken', token);
+  constructor(private db: DatabaseService) {
+    this.currentUserSubject = new BehaviorSubject<User | null>(null);
+    this.currentUser$ = this.currentUserSubject.asObservable();
+    this.loadCurrentUser();
+  }
+
+  private async loadCurrentUser() {
+    const user = await this.db.getCurrentUser();
+    if (user) {
+      this.currentUserSubject.next(user);
+    }
+  }
+
+  get currentUserValue(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  async login(credentials: LoginCredentials): Promise<{ success: boolean; message?: string; user?: User }> {
+    try {
+      const user = await this.db.getUserByEmail(credentials.email);
+
+      if (!user) {
+        return { success: false, message: 'Usuario no encontrado' };
+      }
+
+      if (user.password !== credentials.password) {
+        return { success: false, message: 'Contraseña incorrecta' };
+      }
+
+      if (!user.activo) {
+        return { success: false, message: 'Usuario inactivo' };
+      }
+
+      await this.db.setCurrentUser(user);
+      this.currentUserSubject.next(user);
+
+      return { success: true, message: 'Login exitoso', user };
+    } catch (error) {
+      console.error('Error en login:', error);
+      return { success: false, message: 'Error al iniciar sesión' };
+    }
+  }
+
+  async register(data: RegisterData): Promise<{ success: boolean; message?: string; user?: User }> {
+    try {
+      const existingUser = await this.db.getUserByEmail(data.email);
+      if (existingUser) {
+        return { success: false, message: 'El email ya está registrado' };
+      }
+
+      const newUser: User = {
+        id: this.db.generateId(),
+        email: data.email,
+        password: data.password,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        dni: data.dni,
+        rol: 'empleado',
+        fechaRegistro: new Date().toISOString(),
+        activo: true
+      };
+
+      const saved = await this.db.saveUser(newUser);
+
+      if (!saved) {
+        return { success: false, message: 'Error al guardar usuario' };
+      }
+
+      await this.db.setCurrentUser(newUser);
+      this.currentUserSubject.next(newUser);
+
+      return { success: true, message: 'Registro exitoso', user: newUser };
+    } catch (error) {
+      console.error('Error en registro:', error);
+      return { success: false, message: 'Error al registrar usuario' };
+    }
+  }
+
+  async logout(): Promise<void> {
+    await this.db.clearCurrentUser();
+    this.currentUserSubject.next(null);
+  }
+
+  isAuthenticated(): boolean {
+    return this.currentUserValue !== null;
+  }
+
+  getCurrentUserId(): string | null {
+    return this.currentUserValue?.id || null;
+  }
+
+  async updateProfile(updates: Partial<User>): Promise<boolean> {
+    const currentUser = this.currentUserValue;
+    if (!currentUser) return false;
+
+    const success = await this.db.updateUser(currentUser.id, updates);
+
+    if (success) {
+      const updatedUser = { ...currentUser, ...updates };
+      await this.db.setCurrentUser(updatedUser);
+      this.currentUserSubject.next(updatedUser);
     }
 
-    get accessToken(): string {
-        return this.storageService.get<string>('accessToken') ?? '';
-    }
-
-    // canActivate(): boolean {
-    //     return this.SignInService.isAuthenticated();
-    // }
-
-    /**
-     * Iniciar sesión
-     * @param email - El correo electrónico del usuario
-     * @param password - La contraseña del usuario
-     * @returns Un observable que emite la respuesta de inicio de sesión
-     */
-    login(email: string, password: string): Observable<LoginResponse> {
-        return this.http.post<LoginResponse>(`${environment.auth.login}`, { email, password }).pipe(
-            tap((response) => {
-                const token = response?.result?.token;
-                this.accessToken = token;
-                this._authenticated = true;
-            })
-        );
-    }
-    // JSON.stringify(response)
-    // isAuthenticated(): boolean {
-    //     return this._authenticated || !!this.accessToken;
-    // }
-
-    /**
-     * Cerrar sesión
-     */
-    signOut(): Observable<any> {
-        // Eliminar el token de acceso del almacenamiento local
-        localStorage.clear();
-        // Establecer el indicador de autenticación en falso
-        this._authenticated = false;
-        // Devolver el observable
-        return of(true);
-    }
-
-    check(): Observable<boolean> {
-        // Comprobar si el usuario ha iniciado sesión
-        if (this._authenticated) {
-            return of(true);
-        }
-
-        // Comprobar la disponibilidad del token de acceso
-        if (!this.accessToken) {
-            return of(false);
-        }
-
-        // Si el token de acceso existe y no ha caducado, iniciar sesión con él
-        return of(true);
-    }
+    return success;
+  }
 }

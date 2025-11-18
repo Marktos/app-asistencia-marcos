@@ -1,76 +1,222 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Panel De Asistencias</ion-title>
+    <ion-buttons slot="start">
+      <ion-button>
+        <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Panel de Asistencia</ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
 <ion-content [fullscreen]="true" class="asistencia-content">
-  <ion-card class="perfil-card">
-    <div class="perfil-header">
-      <ion-avatar>
-        <ion-icon name="person-circle-outline" class="perfil-icon"></ion-icon>
-      </ion-avatar>
+
+  <!-- Profile Card -->
+  <div class="profile-section">
+    <ion-card class="profile-card">
+      <div class="profile-header">
+        <div class="avatar-container">
+          <ion-icon name="person-circle" class="avatar-icon"></ion-icon>
+          <div class="status-indicator"></div>
+        </div>
+        <div class="profile-info">
+          <h2 class="profile-name">Juan Pérez</h2>
+          <p class="profile-role">
+            <ion-icon name="briefcase-outline"></ion-icon>
+            Supervisor
+          </p>
+        </div>
+      </div>
+
+      <div class="profile-details">
+        <div class="detail-item">
+          <ion-icon name="card-outline"></ion-icon>
+          <span>DNI: 12345678</span>
+        </div>
+        <div class="detail-item">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ currentDate | date: 'fullDate' }}</span>
+        </div>
+      </div>
+    </ion-card>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-section">
+    <div class="stat-card">
+      <ion-icon name="time-outline" class="stat-icon primary"></ion-icon>
+      <div class="stat-info">
+        <p class="stat-value">08:30</p>
+        <p class="stat-label">Entrada</p>
+      </div>
     </div>
-    <div class="perfil-info">
-      <p class="info-line">Nombre: Juan Pérez</p>
-      <p class="info-line">DNI: 12345678</p>
-      <p class="info-line">Rol: Supervisor</p>
+    <div class="stat-card">
+      <ion-icon name="exit-outline" class="stat-icon success"></ion-icon>
+      <div class="stat-info">
+        <p class="stat-value">--:--</p>
+        <p class="stat-label">Salida</p>
+      </div>
     </div>
-  </ion-card>
+    <div class="stat-card">
+      <ion-icon name="checkmark-circle-outline" class="stat-icon secondary"></ion-icon>
+      <div class="stat-info">
+        <p class="stat-value">22</p>
+        <p class="stat-label">Este mes</p>
+      </div>
+    </div>
+  </div>
 
-  <div class="turnos-section">
-    <h2>Turnos</h2>
+  <!-- Turnos Section -->
+  <div class="section-header">
+    <h3 class="section-title">
+      <ion-icon name="albums-outline"></ion-icon>
+      Turnos Disponibles
+    </h3>
+  </div>
 
-    <ion-card button (click)="abrirModal(turnos[0])">
-  <ion-card-content>
-    Turno Mañana - 8:00 a 12:00
-  </ion-card-content>
+  <div class="turnos-grid">
+    <ion-card class="turno-card morning" button (click)="abrirModal(turnos[0])">
+      <div class="turno-icon">
+        <ion-icon name="sunny-outline"></ion-icon>
+      </div>
+      <div class="turno-content">
+        <h4>Turno Mañana</h4>
+        <p class="turno-time">
+          <ion-icon name="time-outline"></ion-icon>
+          8:00 - 12:00
+        </p>
+        <ion-badge color="warning">Disponible</ion-badge>
+      </div>
+    </ion-card>
 
-  <ion-button expand="block" id="openModal">Comenzar turno</ion-button>
+    <ion-card class="turno-card afternoon" button (click)="abrirModal(turnos[1])">
+      <div class="turno-icon">
+        <ion-icon name="partly-sunny-outline"></ion-icon>
+      </div>
+      <div class="turno-content">
+        <h4>Turno Tarde</h4>
+        <p class="turno-time">
+          <ion-icon name="time-outline"></ion-icon>
+          14:00 - 18:00
+        </p>
+        <ion-badge color="success">Activo</ion-badge>
+      </div>
+    </ion-card>
 
-  <ion-modal trigger="openModal" [presentingElement]="presentingElement" (willDismiss)="onWillDismiss($event)">
+    <ion-card class="turno-card night" button (click)="abrirModal(turnos[2])">
+      <div class="turno-icon">
+        <ion-icon name="moon-outline"></ion-icon>
+      </div>
+      <div class="turno-content">
+        <h4>Turno Noche</h4>
+        <p class="turno-time">
+          <ion-icon name="time-outline"></ion-icon>
+          20:00 - 00:00
+        </p>
+        <ion-badge color="medium">Próximo</ion-badge>
+      </div>
+    </ion-card>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section-header">
+    <h3 class="section-title">
+      <ion-icon name="flash-outline"></ion-icon>
+      Acciones Rápidas
+    </h3>
+  </div>
+
+  <div class="actions-grid">
+    <ion-card class="action-card" button routerLink="/historial">
+      <ion-icon name="list-outline" color="primary"></ion-icon>
+      <p>Historial</p>
+    </ion-card>
+    <ion-card class="action-card" button>
+      <ion-icon name="stats-chart-outline" color="success"></ion-icon>
+      <p>Reportes</p>
+    </ion-card>
+    <ion-card class="action-card" button>
+      <ion-icon name="settings-outline" color="medium"></ion-icon>
+      <p>Ajustes</p>
+    </ion-card>
+    <ion-card class="action-card" button>
+      <ion-icon name="help-circle-outline" color="warning"></ion-icon>
+      <p>Ayuda</p>
+    </ion-card>
+  </div>
+
+  <!-- Modal -->
+  <ion-modal
+    [isOpen]="modalOpen"
+    (willDismiss)="onWillDismiss()"
+    [presentingElement]="presentingElement">
     <ng-template>
-      <ion-header>
+      <ion-header class="ion-no-border">
         <ion-toolbar>
           <ion-buttons slot="start">
-            <ion-button (click)="cancel()">Cancelar</ion-button>
+            <ion-button (click)="cancel()">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
           </ion-buttons>
           <ion-title>Detalles del Turno</ion-title>
-          <ion-buttons slot="end">
-            <ion-button (click)="confirm()" strong="true">Confirmar</ion-button>
-          </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        <ion-card *ngIf="turnoSeleccionado">
-          <ion-card-header>
-            <ion-card-title>{{ turnoSeleccionado.titulo }}</ion-card-title>
-            <ion-card-subtitle>{{ turnoSeleccionado.fecha }}</ion-card-subtitle>
-          </ion-card-header>
+      <ion-content class="modal-content">
+        <div class="modal-body" *ngIf="turnoSeleccionado">
 
-          <ion-card-content>
-            <p><strong>Horario:</strong> {{ turnoSeleccionado.horario }}</p>
-            <p><strong>Responsable:</strong> {{ turnoSeleccionado.usuario }}</p>
-            <ion-button expand="block" color="success" (click)="comenzarTurno()">Comenzar Turno</ion-button>
-          </ion-card-content>
-        </ion-card>
+          <!-- Turno Info -->
+          <div class="turno-header">
+            <ion-icon name="sunny-outline" class="turno-modal-icon"></ion-icon>
+            <h2>{{ turnoSeleccionado.titulo }}</h2>
+            <p class="turno-fecha">{{ turnoSeleccionado.fecha | date: 'fullDate' }}</p>
+          </div>
+
+          <!-- Details -->
+          <ion-card class="detail-card">
+            <div class="detail-row">
+              <ion-icon name="time-outline"></ion-icon>
+              <div>
+                <p class="detail-label">Horario</p>
+                <p class="detail-value">{{ turnoSeleccionado.horario }}</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="person-outline"></ion-icon>
+              <div>
+                <p class="detail-label">Responsable</p>
+                <p class="detail-value">{{ turnoSeleccionado.usuario }}</p>
+              </div>
+            </div>
+            <div class="detail-row">
+              <ion-icon name="location-outline"></ion-icon>
+              <div>
+                <p class="detail-label">Ubicación</p>
+                <p class="detail-value">Oficina Principal</p>
+              </div>
+            </div>
+          </ion-card>
+
+          <!-- Action Buttons -->
+          <div class="modal-actions">
+            <ion-button
+              expand="block"
+              size="large"
+              class="start-button"
+              (click)="comenzarTurno()">
+              <ion-icon slot="start" name="play-circle-outline"></ion-icon>
+              Comenzar Turno
+            </ion-button>
+          </div>
+
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>
-</ion-card>
-
-
-
-    <ion-card button (click)="abrirModal(turnos[1])">
-      <ion-card-content>
-        Turno Tarde - 14:00 a 18:00
-      </ion-card-content>
-    </ion-card>
-    <ion-card button (click)="abrirModal(turnos[2])">
-      <ion-card-content>
-        Turno Noche - 20:00 a 00:00
-      </ion-card-content>
-    </ion-card>
-  </div>
 
 </ion-content>

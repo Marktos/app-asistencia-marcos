@@ -11,8 +11,8 @@ export const environment = {
   production: false,
   baseDev: $BASE_DEV,
   auth: {
-    login: `${$BASE_DEV}/`,
-    register: `${$BASE_DEV}/register`
+    login: 'http://localhost:3000/api/v1/auth/login',
+    register: 'http://localhost:3000/api/v1/auth/register'
   }
 };
 
