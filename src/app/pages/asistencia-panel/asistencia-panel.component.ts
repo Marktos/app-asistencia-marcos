@@ -103,10 +103,6 @@ export class AsistenciaPanelComponent implements OnInit, AfterViewInit {
   comenzarTurno() {
     console.log('Comenzando turno:', this.turnoSeleccionado);
 
-    // Aquí irá la lógica de:
-    // 1. Validar ubicación
-    // 2. Tomar foto
-    // 3. Registrar asistencia
 
     this.modalOpen = false;
 

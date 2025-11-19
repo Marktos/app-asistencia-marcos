@@ -1,0 +1,35 @@
+ <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-back-button defaultHref="/panel-asistencia"></ion-back-button>
+        </ion-buttons>
+        <ion-title>Historial de Asistencias</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <ion-card *ngIf="asistencias.length === 0">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="calendar-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
+          <h2>No hay registros</h2>
+          <p>Aún no tienes asistencias registradas</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-list *ngIf="asistencias.length > 0">
+        <ion-card *ngFor="let asistencia of asistencias">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-badge [color]="asistencia.tipo === 'entrada' ? 'primary' : 'success'">
+                {{ asistencia.tipo === 'entrada' ? 'Entrada' : 'Salida' }}
+              </ion-badge>
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p><strong>Fecha:</strong> {{ asistencia.fecha | date: 'fullDate' }}</p>
+            <p><strong>Hora:</strong> {{ asistencia.hora }}</p>
+            <p><strong>Ubicación:</strong> Lat: {{ asistencia.ubicacion.latitud | number:'1.4-4' }}, Lng: {{ asistencia.ubicacion.longitud | number:'1.4-4' }}</p>
+          </ion-card-content>
+        </ion-card>
+      </ion-list>
+    </ion-content>
