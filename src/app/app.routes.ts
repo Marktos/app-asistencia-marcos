@@ -30,7 +30,7 @@ export const routes: Routes = [
     path: 'registro-asistencia',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/registro/registro-asistencia.component').then(
+      import('./pages/registro-asistencia/registro-asistencia.component').then(
         (m) => m.RegistroAsistenciaComponent
       ),
   },

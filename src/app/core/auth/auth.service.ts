@@ -7,7 +7,6 @@ import { Preferences } from '@capacitor/preferences';
   providedIn: 'root'
 })
 export class AuthService {
-  // Observable para saber si hay usuario logueado
   private currentUserSubject: BehaviorSubject<any>;
   public currentUser$: Observable<any>;
 
@@ -17,13 +16,19 @@ export class AuthService {
     this.loadSession();
   }
 
-  // Cargar sesión guardada (si existe)
+  // Inicializar base de datos
+  async initializeAuth(): Promise<void> {
+    await this.sqlite.initializeDatabase();
+    await this.loadSession();
+  }
+
+  // Cargar sesión guardada
   private async loadSession() {
     const { value } = await Preferences.get({ key: 'currentUser' });
     if (value) {
       const user = JSON.parse(value);
       this.currentUserSubject.next(user);
-      console.log('Sesión restaurada:', user.email);
+      console.log('🔐 Sesión restaurada:', user.email);
     }
   }
 
@@ -32,23 +37,22 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  // Verificar si está autenticado
+  // Verificar autenticación
   isAuthenticated(): boolean {
     return this.currentUser !== null;
   }
 
-  // Login de usuario
+  // Login
   async login(email: string, password: string): Promise<{ success: boolean; message: string; user?: any }> {
     try {
-      // Buscar usuario en la base de datos
+      // Buscar usuario en SQLite
       const user = await this.sqlite.getUserByEmail(email);
 
-      // Verificar si existe
       if (!user) {
         return { success: false, message: 'Usuario no encontrado' };
       }
 
-      // Verificar contraseña
+      // Verificar contraseña (en producción usa bcrypt)
       if (user.password !== password) {
         return { success: false, message: 'Contraseña incorrecta' };
       }
@@ -65,17 +69,17 @@ export class AuthService {
       });
 
       this.currentUserSubject.next(user);
-      console.log('Login exitoso:', user.email);
+      console.log('✅ Login exitoso:', user.email);
 
       return { success: true, message: 'Login exitoso', user };
 
     } catch (error) {
-      console.error('Error en login:', error);
+      console.error('❌ Error en login:', error);
       return { success: false, message: 'Error al iniciar sesión' };
     }
   }
 
-  // Registro de nuevo usuario
+  // Registro
   async register(data: any): Promise<{ success: boolean; message: string; user?: any }> {
     try {
       // Verificar si el email ya existe
@@ -85,10 +89,10 @@ export class AuthService {
         return { success: false, message: 'El email ya está registrado' };
       }
 
-      // Crear usuario en la base de datos
+      // Crear usuario en SQLite
       const userId = await this.sqlite.createUser({
         email: data.email,
-        password: data.password,
+        password: data.password, // En producción, hashear con bcrypt
         nombre: data.nombre,
         apellido: data.apellido,
         dni: data.dni,
@@ -111,12 +115,12 @@ export class AuthService {
       });
 
       this.currentUserSubject.next(newUser);
-      console.log('Registro exitoso:', newUser.email);
+      console.log('✅ Registro exitoso:', newUser.email);
 
       return { success: true, message: 'Registro exitoso', user: newUser };
 
     } catch (error) {
-      console.error('Error en registro:', error);
+      console.error('❌ Error en registro:', error);
       return { success: false, message: 'Error al registrar usuario' };
     }
   }
@@ -125,7 +129,7 @@ export class AuthService {
   async logout(): Promise<void> {
     await Preferences.remove({ key: 'currentUser' });
     this.currentUserSubject.next(null);
-    console.log('Sesión cerrada');
+    console.log('👋 Sesión cerrada');
   }
 
   // Obtener ID del usuario actual
@@ -133,7 +137,7 @@ export class AuthService {
     return this.currentUser?.id || null;
   }
 
-  // Actualizar datos del usuario
+  // Actualizar perfil
   async updateProfile(updates: any): Promise<boolean> {
     const userId = this.getCurrentUserId();
     if (!userId) return false;
@@ -141,7 +145,6 @@ export class AuthService {
     const success = await this.sqlite.updateUser(userId, updates);
 
     if (success) {
-      // Actualizar usuario en memoria
       const updatedUser = { ...this.currentUser, ...updates };
       await Preferences.set({
         key: 'currentUser',

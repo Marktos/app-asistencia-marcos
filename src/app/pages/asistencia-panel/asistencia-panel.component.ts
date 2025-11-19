@@ -4,13 +4,14 @@ import { Router, RouterLink } from '@angular/router';
 import {
   IonContent, IonCard, IonCardContent, IonIcon, IonButton,
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBadge,
-  AlertController, IonModal } from '@ionic/angular/standalone';
+  AlertController
+} from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { SqliteService } from 'src/app/core/services/sqlite.service';
 
 @Component({
   standalone: true,
-  imports: [IonModal,
+  imports: [
     CommonModule, RouterLink, IonContent, IonCard, IonCardContent,
     IonIcon, IonButton, IonHeader, IonToolbar, IonTitle,
     IonButtons, IonBadge
@@ -40,13 +41,8 @@ export class AsistenciaPanelComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Cargar datos del usuario
     await this.loadUserData();
-
-    // Cargar datos de asistencia del día
     await this.loadAsistenciasHoy();
-
-    // Cargar estadísticas
     await this.loadEstadisticas();
 
     // Actualizar fecha cada minuto
@@ -55,30 +51,41 @@ export class AsistenciaPanelComponent implements OnInit {
     }, 60000);
   }
 
-  // Cargar datos del usuario actual
+  async ionViewWillEnter() {
+    // Recargar datos cada vez que se entra a la vista
+    await this.loadAsistenciasHoy();
+    await this.loadEstadisticas();
+  }
+
+  // Cargar datos del usuario
   async loadUserData() {
     this.currentUser = this.authService.currentUser;
     console.log('👤 Usuario actual:', this.currentUser);
   }
 
-  // Cargar asistencias del día de hoy
+  // Cargar asistencias del día
   async loadAsistenciasHoy() {
     const userId = this.authService.getCurrentUserId();
     if (!userId) return;
 
-    // Obtener asistencias de hoy
+    // Obtener asistencias de hoy desde SQLite
     const asistencias = await this.sqlite.getAsistenciasHoy(userId);
 
-    // Verificar si ya registró entrada y salida
+    // Verificar registros
     this.yaRegistroEntrada = asistencias.some(a => a.tipo === 'entrada');
     this.yaRegistroSalida = asistencias.some(a => a.tipo === 'salida');
 
-    // Obtener horas de entrada y salida
+    // Obtener horas
     const entrada = asistencias.find(a => a.tipo === 'entrada');
     const salida = asistencias.find(a => a.tipo === 'salida');
 
     this.horaEntrada = entrada ? entrada.hora.substring(0, 5) : '--:--';
     this.horaSalida = salida ? salida.hora.substring(0, 5) : '--:--';
+
+    console.log('📊 Asistencias hoy:', {
+      entrada: this.yaRegistroEntrada,
+      salida: this.yaRegistroSalida
+    });
   }
 
   // Cargar estadísticas del mes
@@ -92,18 +99,19 @@ export class AsistenciaPanelComponent implements OnInit {
     const mesActual = new Date().getMonth();
     const anioActual = new Date().getFullYear();
 
-    const asistenciasMes = asistencias.filter(a => {
+    const asistenciasMes = asistencias.filter((a: any) => {
       const fecha = new Date(a.fecha);
       return fecha.getMonth() === mesActual && fecha.getFullYear() === anioActual;
     });
 
-    // Contar solo las entradas (para no duplicar)
-    this.totalAsistenciasMes = asistenciasMes.filter(a => a.tipo === 'entrada').length;
+    // Contar solo las entradas
+    this.totalAsistenciasMes = asistenciasMes.filter((a: any) => a.tipo === 'entrada').length;
+
+    console.log('📈 Asistencias del mes:', this.totalAsistenciasMes);
   }
 
   // Registrar entrada
   async registrarEntrada() {
-    // Verificar si ya registró entrada
     if (this.yaRegistroEntrada) {
       await this.mostrarAlerta(
         'Ya registraste entrada',
@@ -112,7 +120,6 @@ export class AsistenciaPanelComponent implements OnInit {
       return;
     }
 
-    // Navegar a registro de asistencia
     this.router.navigate(['/registro-asistencia'], {
       queryParams: { tipo: 'entrada' }
     });
@@ -120,7 +127,6 @@ export class AsistenciaPanelComponent implements OnInit {
 
   // Registrar salida
   async registrarSalida() {
-    // Verificar si no ha registrado entrada
     if (!this.yaRegistroEntrada) {
       await this.mostrarAlerta(
         'Primero registra entrada',
@@ -129,7 +135,6 @@ export class AsistenciaPanelComponent implements OnInit {
       return;
     }
 
-    // Verificar si ya registró salida
     if (this.yaRegistroSalida) {
       await this.mostrarAlerta(
         'Ya registraste salida',
@@ -138,7 +143,6 @@ export class AsistenciaPanelComponent implements OnInit {
       return;
     }
 
-    // Navegar a registro de asistencia
     this.router.navigate(['/registro-asistencia'], {
       queryParams: { tipo: 'salida' }
     });
@@ -168,7 +172,7 @@ export class AsistenciaPanelComponent implements OnInit {
     await alert.present();
   }
 
-  // Método auxiliar para mostrar alertas
+  // Mostrar alerta
   private async mostrarAlerta(header: string, message: string) {
     const alert = await this.alertController.create({
       header,

@@ -3,35 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
-  IonButton,
-  IonInput,
-  IonItem,
-  IonIcon,
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonBackButton
+  IonButton, IonInput, IonItem, IonIcon, IonContent,
+  LoadingController, ToastController
 } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-    IonButton,
-    IonInput,
-    IonItem,
-    IonIcon,
-    IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonBackButton
+    CommonModule, ReactiveFormsModule, RouterLink,
+    IonButton, IonInput, IonItem, IonIcon, IonContent
   ],
   selector: 'app-register',
   templateUrl: './register.component.html',
@@ -41,12 +22,14 @@ export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
-  errorMessage: string = '';
+errorMessage: any;
 
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private loadingCtrl: LoadingController,
+    private toastCtrl: ToastController
   ) {}
 
   ngOnInit() {
@@ -86,22 +69,47 @@ export class RegisterComponent implements OnInit {
       return;
     }
 
-    const { nombre, apellido, dni, email, password } = this.registerForm.value;
-
-    const result = await this.auth.register({
-      nombre,
-      apellido,
-      dni,
-      email,
-      password
+    const loading = await this.loadingCtrl.create({
+      message: 'Creando cuenta...',
+      spinner: 'crescent'
     });
+    await loading.present();
 
-    if (result.success) {
-      console.log('Registro exitoso:', result.user);
-      this.router.navigate(['/panel-asistencia']);
-    } else {
-      this.errorMessage = result.message || 'Error al registrar usuario';
-      console.error('Error de registro:', result.message);
+    try {
+      const { nombre, apellido, dni, email, password } = this.registerForm.value;
+
+      // Registro con SQLite
+      const result = await this.auth.register({
+        nombre,
+        apellido,
+        dni,
+        email,
+        password
+      });
+
+      if (result.success) {
+        console.log('✅ Registro exitoso');
+        await this.mostrarToast('Cuenta creada exitosamente!', 'success');
+        this.router.navigate(['/panel-asistencia']);
+      } else {
+        await this.mostrarToast(result.message, 'danger');
+      }
+
+    } catch (error) {
+      console.error('❌ Error en registro:', error);
+      await this.mostrarToast('Error al crear cuenta', 'danger');
+    } finally {
+      await loading.dismiss();
     }
+  }
+
+  private async mostrarToast(message: string, color: string) {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'top'
+    });
+    await toast.present();
   }
 }
