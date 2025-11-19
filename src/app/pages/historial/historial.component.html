@@ -1,35 +1,93 @@
- <ion-header class="ion-no-border">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/panel-asistencia"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Historial de Asistencias</ion-title>
-      </ion-toolbar>
-    </ion-header>
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/panel-asistencia"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial de Asistencias</ion-title>
+  </ion-toolbar>
+</ion-header>
 
-    <ion-content class="ion-padding">
-      <ion-card *ngIf="asistencias.length === 0">
-        <ion-card-content class="ion-text-center">
-          <ion-icon name="calendar-outline" style="font-size: 64px; color: var(--ion-color-medium);"></ion-icon>
-          <h2>No hay registros</h2>
-          <p>Aún no tienes asistencias registradas</p>
-        </ion-card-content>
-      </ion-card>
+<ion-content class="ion-padding historial-content">
 
-      <ion-list *ngIf="asistencias.length > 0">
-        <ion-card *ngFor="let asistencia of asistencias">
-          <ion-card-header>
-            <ion-card-title>
-              <ion-badge [color]="asistencia.tipo === 'entrada' ? 'primary' : 'success'">
-                {{ asistencia.tipo === 'entrada' ? 'Entrada' : 'Salida' }}
-              </ion-badge>
-            </ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p><strong>Fecha:</strong> {{ asistencia.fecha | date: 'fullDate' }}</p>
-            <p><strong>Hora:</strong> {{ asistencia.hora }}</p>
-            <p><strong>Ubicación:</strong> Lat: {{ asistencia.ubicacion.latitud | number:'1.4-4' }}, Lng: {{ asistencia.ubicacion.longitud | number:'1.4-4' }}</p>
-          </ion-card-content>
-        </ion-card>
-      </ion-list>
-    </ion-content>
+  <!-- Estado vacío -->
+  <div *ngIf="asistencias.length === 0" class="empty-state">
+    <ion-icon name="calendar-clear-outline" class="empty-icon"></ion-icon>
+    <h2>No hay registros</h2>
+    <p>Aún no tienes asistencias registradas</p>
+    <ion-button fill="outline" routerLink="/panel-asistencia">
+      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+      Registrar Asistencia
+    </ion-button>
+  </div>
+
+  <!-- Lista de asistencias -->
+  <div *ngIf="asistencias.length > 0" class="asistencias-list">
+
+    <ion-card *ngFor="let asistencia of asistencias" class="asistencia-card">
+      <div class="card-header" [ngClass]="asistencia.tipo">
+        <div class="header-left">
+          <ion-icon [name]="asistencia.tipo === 'entrada' ? 'log-in-outline' : 'log-out-outline'"></ion-icon>
+          <div>
+            <h3>{{ asistencia.tipo === 'entrada' ? 'Entrada' : 'Salida' }}</h3>
+            <p class="fecha">{{ asistencia.fecha | date: 'EEEE, d MMMM yyyy' }}</p>
+          </div>
+        </div>
+        <ion-badge [color]="asistencia.tipo === 'entrada' ? 'primary' : 'success'">
+          {{ asistencia.hora }}
+        </ion-badge>
+      </div>
+
+      <ion-card-content>
+        <div class="info-grid">
+
+          <div class="info-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <div>
+              <span class="label">Turno</span>
+              <span class="value">{{ getTurnoLabel(asistencia.turno) }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="asistencia.areaNombre">
+            <ion-icon name="location-outline"></ion-icon>
+            <div>
+              <span class="label">Ubicación</span>
+              <span class="value">{{ asistencia.areaNombre }}</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <ion-icon name="navigate-outline"></ion-icon>
+            <div>
+              <span class="label">Coordenadas</span>
+              <span class="value coords">
+                {{ asistencia.ubicacion.latitud | number:'1.4-4' }},
+                {{ asistencia.ubicacion.longitud | number:'1.4-4' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="asistencia.validadaPorPoligono !== undefined">
+            <ion-icon [name]="asistencia.validadaPorPoligono ? 'shield-checkmark-outline' : 'radio-outline'"></ion-icon>
+            <div>
+              <span class="label">Validación</span>
+              <span class="value">{{ asistencia.validadaPorPoligono ? 'Por área' : 'Por radio' }}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Foto (opcional, expandible) -->
+        <div *ngIf="asistencia.foto" class="foto-container">
+          <img
+            [src]="asistencia.foto"
+            alt="Foto del registro"
+            (click)="verFoto(asistencia.foto)"
+            class="foto-thumb">
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+</ion-content>

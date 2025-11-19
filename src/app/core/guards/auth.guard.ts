@@ -2,10 +2,12 @@ import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 
+// Guard para rutas protegidas
 export const authGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // Verificar si está autenticado
   const isAuthenticated = authService.isAuthenticated();
 
   if (!isAuthenticated) {
@@ -18,6 +20,8 @@ export const authGuard: CanActivateFn = async (route, state) => {
   return true;
 };
 
+// Guard para rutas públicas
+// Evita que usuarios ya autenticados accedan
 export const publicGuard: CanActivateFn = async (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);

@@ -1,18 +1,25 @@
 import { Injectable } from '@angular/core';
-import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root', // Este servicio estará disponible en toda la aplicación sin necesidad de declararlo en módulos
 })
 export class CameraService {
-
   constructor() {}
 
   /**
-   *Metodo para tomar una foto con la cámara
+   * Método para tomar una foto usando la cámara del dispositivo.
+   * Devuelve un string Base64 o null.
    */
   async takePicture(): Promise<string | null> {
     try {
+      // Primero verificamos si la app tiene permisos para usar la cámara
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        throw new Error('No se otorgaron permisos de cámara');
+      }
+
+      // Abrimos la cámara del dispositivo para capturar una imagen
       const photo = await Camera.getPhoto({
         quality: 80,
         allowEditing: false,
@@ -21,77 +28,47 @@ export class CameraService {
         saveToGallery: false,
         width: 800,
         height: 800,
-        correctOrientation: true
+        correctOrientation: true,
       });
 
+      // Si la foto fue capturada correctamente, viene con la propiedad base64String
       if (photo.base64String) {
-        console.log('Foto capturada exitosamente');
+        console.log('Foto capturada correctamente');
+        // Se arma el string completo del recurso Base64
         return `data:image/${photo.format};base64,${photo.base64String}`;
       }
-
+      // Si la foto no tiene base64String, devolvemos null
       return null;
     } catch (error: any) {
       console.error('Error al tomar foto:', error);
-
-      // Si el usuario canceló
+      // Cuando el usuario cancela la captura, Camera lanza este mensaje específico
       if (error.message === 'User cancelled photos app') {
         console.log('Usuario canceló la captura');
         return null;
       }
-
       throw error;
     }
   }
 
   /**
-   * Seleccionar foto de la galería
+   * Verifica y solicita permisos de cámara y fotos.
+   * Devuelve true si ambos permisos fueron otorgados.
    */
-  async selectFromGallery(): Promise<string | null> {
-    try {
-      const photo = await Camera.getPhoto({
-        quality: 80,
-        allowEditing: false,
-        resultType: CameraResultType.Base64,
-        source: CameraSource.Photos,
-        width: 800,
-        height: 800
-      });
-
-      if (photo.base64String) {
-        console.log('Imagen seleccionada exitosamente');
-        return `data:image/${photo.format};base64,${photo.base64String}`;
-      }
-
-      return null;
-    } catch (error: any) {
-      console.error('Error al seleccionar imagen:', error);
-
-      if (error.message === 'User cancelled photos app') {
-        console.log('Usuario canceló la selección');
-        return null;
-      }
-
-      throw error;
-    }
-  }
-
-  /**
-   * Verifico los permisos de la cámara
-   */
-  async checkCameraPermissions(): Promise<boolean> {
+  async checkPermissions(): Promise<boolean> {
     try {
       const permissions = await Camera.checkPermissions();
-
-      if (permissions.camera === 'granted' && permissions.photos === 'granted') {
+      // Si la app ya tiene permisos, no hace falta pedirlos nuevamente
+      if (
+        permissions.camera === 'granted' &&
+        permissions.photos === 'granted'
+      ) {
         return true;
       }
-
-      // Solicito permisos si no están otorgados
+      // Si no tiene permisos suficientes, los solicita al usuario
       const requested = await Camera.requestPermissions();
       return requested.camera === 'granted' && requested.photos === 'granted';
-
     } catch (error) {
-      console.error('Error al verificar permisos:', error);
+      console.error('Error al verificar permisos de cámara:', error);
       return false;
     }
   }

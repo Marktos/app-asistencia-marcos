@@ -2,6 +2,17 @@ import { Injectable } from '@angular/core';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { DatabaseService } from './database.service';
 import { UbicacionValida } from '../models/asistencia.model';
+import { booleanPointInPolygon, point } from '@turf/turf';
+import { areasPermitidas, AreaPermitida } from '../config/areas-permitidas';
+
+export interface ResultadoValidacion {
+  valida: boolean;
+  distancia: number;
+  ubicacionPermitida?: UbicacionValida | AreaPermitida;
+  radioPermitido: number;
+  dentroDePoligono: boolean;
+  areaNombre?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -15,20 +26,18 @@ export class GeolocationService {
    */
   async getCurrentPosition(): Promise<Position> {
     try {
-      // Verificamos los permisos
       const hasPermission = await this.checkPermissions();
       if (!hasPermission) {
         throw new Error('No se otorgaron permisos de ubicación');
       }
 
-      // Obtener posición con alta precisión
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0
       });
 
-      console.log('Posición obtenida:', {
+      console.log('📍 Posición obtenida:', {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         accuracy: position.coords.accuracy
@@ -37,7 +46,7 @@ export class GeolocationService {
       return position;
 
     } catch (error: any) {
-      console.error('Error al obtener ubicación:', error);
+      console.error('❌ Error al obtener ubicación:', error);
 
       if (error.message.includes('User denied')) {
         throw new Error('Permisos de ubicación denegados');
@@ -57,81 +66,112 @@ export class GeolocationService {
   async checkPermissions(): Promise<boolean> {
     try {
       const permissions = await Geolocation.checkPermissions();
-      console.log('Permisos de ubicación:', permissions);
+      console.log('🔐 Permisos de ubicación:', permissions);
 
       if (permissions.location === 'granted') {
         return true;
       }
 
-      // Solicitamos los permisos si no están otorgados
       const requested = await Geolocation.requestPermissions();
       return requested.location === 'granted';
 
     } catch (error) {
-      console.error('Error al verificar permisos:', error);
+      console.error('❌ Error al verificar permisos:', error);
       return false;
     }
   }
 
   /**
    * Validamos si la ubicación está dentro del rango permitido
+   * Ahora usa POLÍGONOS de Turf.js como validación principal
    */
-  async validarUbicacion(position: Position): Promise<{
-    valida: boolean;
-    distancia: number;
-    ubicacionPermitida?: UbicacionValida;
-    radioPermitido: number;
-  }> {
-    const ubicacionesValidas = await this.db.getUbicacionesValidas();
+  async validarUbicacion(position: Position): Promise<ResultadoValidacion> {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
 
-    if (ubicacionesValidas.length === 0) {
-      console.warn('No hay ubicaciones válidas configuradas');
-      return {
-        valida: false,
-        distancia: 0,
-        radioPermitido: 0
-      };
-    }
+    console.log('🔍 Validando ubicación:', { lat, lng });
 
-    // Verifico cada ubicación válida
-    for (const ubicacionValida of ubicacionesValidas) {
-      const distancia = this.calcularDistancia(
-        position.coords.latitude,
-        position.coords.longitude,
-        ubicacionValida.latitud,
-        ubicacionValida.longitud
-      );
+    // Crear punto del usuario
+    const puntoUsuario = point([lng, lat]); // Turf usa [lng, lat]
 
-      console.log(`Distancia a ${ubicacionValida.nombre}: ${distancia.toFixed(2)}m`);
+    // 1. VALIDACIÓN CON POLÍGONOS (Turf.js)
+    for (const area of areasPermitidas) {
+      const estaDentro = booleanPointInPolygon(puntoUsuario, area.polygon);
 
-      // Si está dentro del radio permitido
-      if (distancia <= ubicacionValida.radio) {
-        console.log(`Ubicación válida en ${ubicacionValida.nombre}`);
+      if (estaDentro) {
+        const distanciaAlCentro = this.calcularDistancia(
+          lat, lng,
+          area.centro.lat, area.centro.lng
+        );
+
+        console.log(`✅ Usuario dentro del polígono: ${area.nombre}`);
+        console.log(`📏 Distancia al centro: ${distanciaAlCentro.toFixed(2)}m`);
+
         return {
           valida: true,
-          distancia,
-          ubicacionPermitida: ubicacionValida,
-          radioPermitido: ubicacionValida.radio
+          distancia: distanciaAlCentro,
+          ubicacionPermitida: area,
+          radioPermitido: 100, // Radio informativo
+          dentroDePoligono: true,
+          areaNombre: area.nombre
         };
       }
     }
 
-    // Si no está en ninguna ubicación válida
+    // 2. FALLBACK: Validación por radio circular (ubicaciones guardadas en DB)
+    console.log('⚠️ No está en polígono, verificando por radio...');
+
+    const ubicacionesValidas = await this.db.getUbicacionesValidas();
+
+    if (ubicacionesValidas.length === 0) {
+      console.warn('⚠️ No hay ubicaciones válidas configuradas');
+      return {
+        valida: false,
+        distancia: 0,
+        radioPermitido: 100,
+        dentroDePoligono: false
+      };
+    }
+
+    // Verificar cada ubicación válida
+    for (const ubicacionValida of ubicacionesValidas) {
+      const distancia = this.calcularDistancia(
+        lat, lng,
+        ubicacionValida.latitud,
+        ubicacionValida.longitud
+      );
+
+      console.log(`📏 Distancia a ${ubicacionValida.nombre}: ${distancia.toFixed(2)}m`);
+
+      if (distancia <= ubicacionValida.radio) {
+        console.log(`✅ Ubicación válida en ${ubicacionValida.nombre} (por radio)`);
+        return {
+          valida: true,
+          distancia,
+          ubicacionPermitida: ubicacionValida,
+          radioPermitido: ubicacionValida.radio,
+          dentroDePoligono: false,
+          areaNombre: ubicacionValida.nombre
+        };
+      }
+    }
+
+    // 3. Usuario fuera de rango
     const ubicacionMasCercana = ubicacionesValidas[0];
     const distanciaMasCercana = this.calcularDistancia(
-      position.coords.latitude,
-      position.coords.longitude,
+      lat, lng,
       ubicacionMasCercana.latitud,
       ubicacionMasCercana.longitud
     );
 
-    console.log(`Fuera de rango. Distancia: ${distanciaMasCercana.toFixed(2)}m`);
+    console.log(`❌ Fuera de rango. Distancia: ${distanciaMasCercana.toFixed(2)}m`);
 
     return {
       valida: false,
       distancia: distanciaMasCercana,
       ubicacionPermitida: ubicacionMasCercana,
-      radioPermitido: ubicacionMasCercana.radio
+      radioPermitido: ubicacionMasCercana.radio,
+      dentroDePoligono: false
     };
   }
 
@@ -157,7 +197,7 @@ export class GeolocationService {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    const distancia = R * c; // Distancia en metros
+    const distancia = R * c;
 
     return distancia;
   }
@@ -191,5 +231,12 @@ export class GeolocationService {
    */
   async clearWatch(id: string): Promise<void> {
     await Geolocation.clearWatch({ id });
+  }
+
+  /**
+   * Obtener lista de áreas permitidas
+   */
+  getAreasPermitidas(): AreaPermitida[] {
+    return areasPermitidas;
   }
 }

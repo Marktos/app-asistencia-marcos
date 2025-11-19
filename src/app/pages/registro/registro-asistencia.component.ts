@@ -21,8 +21,8 @@ import {
   ToastController
 } from '@ionic/angular/standalone';
 import { CameraService } from '../../core/services/camara.service';
-import { GeolocationService } from '../../core/services/geolocation.service';
-import { DatabaseService } from '../../core/services/database.service';
+import { GeolocationService, ResultadoValidacion } from '../../core/services/geolocation.service';
+import { DatabaseService } from 'src/app/core/services/database.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Asistencia } from '../../core/models/asistencia.model';
 
@@ -51,16 +51,20 @@ import { Asistencia } from '../../core/models/asistencia.model';
 })
 export class RegistroAsistenciaComponent implements OnInit {
   tipo: 'entrada' | 'salida' = 'entrada';
-  turno: string = '';
+  turno: 'mañana' | 'tarde' | 'noche' = 'mañana';
 
   foto: string | null = null;
   ubicacion: any = null;
+  resultadoValidacion: ResultadoValidacion | null = null;
 
   step: 'foto' | 'ubicacion' | 'confirmacion' = 'foto';
   loading: boolean = false;
 
   ubicacionValida: boolean = false;
   distancia: number = 0;
+
+  // Referencia a Date para usar en template
+  Date = Date;
 
   constructor(
     private camera: CameraService,
@@ -78,7 +82,8 @@ export class RegistroAsistenciaComponent implements OnInit {
     // Obtenemos los parámetros de la ruta
     this.route.queryParams.subscribe(params => {
       this.tipo = params['tipo'] || 'entrada';
-      this.turno = params['turno'] || '';
+      this.turno = params['turno'] || 'mañana';
+      console.log('📋 Tipo:', this.tipo, '| Turno:', this.turno);
     });
 
     // Verificar si ya registró hoy
@@ -131,11 +136,11 @@ export class RegistroAsistenciaComponent implements OnInit {
       if (foto) {
         this.foto = foto;
         this.step = 'ubicacion';
-        console.log('Foto capturada');
+        console.log('📸 Foto capturada');
       }
 
     } catch (error) {
-      console.error('Error al tomar foto:', error);
+      console.error('❌ Error al tomar foto:', error);
       await this.mostrarAlerta('Error', 'No se pudo tomar la foto');
     } finally {
       this.loading = false;
@@ -152,25 +157,33 @@ export class RegistroAsistenciaComponent implements OnInit {
     try {
       // Obtener ubicación actual
       this.ubicacion = await this.geolocation.getCurrentPosition();
-      console.log('Ubicación obtenida:', this.ubicacion);
+      console.log('📍 Ubicación obtenida:', this.ubicacion);
 
-      // Validar ubicación
-      const resultado = await this.geolocation.validarUbicacion(this.ubicacion);
-      this.ubicacionValida = resultado.valida;
-      this.distancia = resultado.distancia;
+      // Validar ubicación (usa polígonos de Turf.js)
+      this.resultadoValidacion = await this.geolocation.validarUbicacion(this.ubicacion);
+      this.ubicacionValida = this.resultadoValidacion.valida;
+      this.distancia = this.resultadoValidacion.distancia;
+
+      console.log('✅ Resultado validación:', this.resultadoValidacion);
 
       if (this.ubicacionValida) {
         this.step = 'confirmacion';
-        console.log('Ubicación válida');
+
+        const mensaje = this.resultadoValidacion.dentroDePoligono
+          ? `Ubicación verificada en ${this.resultadoValidacion.areaNombre}`
+          : `Ubicación válida (${this.resultadoValidacion.distancia.toFixed(0)}m del punto)`;
+
+        await this.mostrarToast(mensaje, 'success');
       } else {
-        await this.mostrarAlerta(
-          'Ubicación inválida',
-          `Estás a ${resultado.distancia.toFixed(0)}m de la oficina. Debes estar dentro del radio permitido (${resultado.radioPermitido}m).`
-        );
+        const mensaje = this.resultadoValidacion.areaNombre
+          ? `Estás a ${this.resultadoValidacion.distancia.toFixed(0)}m de ${this.resultadoValidacion.areaNombre}. Debes estar dentro del área permitida.`
+          : `Estás fuera del área permitida. Distancia: ${this.resultadoValidacion.distancia.toFixed(0)}m`;
+
+        await this.mostrarAlerta('Ubicación inválida', mensaje);
       }
 
     } catch (error: any) {
-      console.error('Error al obtener ubicación:', error);
+      console.error('❌ Error al obtener ubicación:', error);
       await this.mostrarAlerta(
         'Error de ubicación',
         error.message || 'No se pudo obtener tu ubicación'
@@ -205,12 +218,14 @@ export class RegistroAsistenciaComponent implements OnInit {
         hora: now.toTimeString().split(' ')[0], // HH:mm:ss
         timestamp: now.getTime(),
         ubicacion: {
-          latitud: this.ubicacion.latitude,
-          longitud: this.ubicacion.longitude,
-          precisión: this.ubicacion.accuracy
+          latitud: this.ubicacion.coords.latitude,
+          longitud: this.ubicacion.coords.longitude,
+          precisión: this.ubicacion.coords.accuracy
         },
         foto: this.foto,
-        turno: this.turno
+        turno: this.turno,
+        areaNombre: this.resultadoValidacion?.areaNombre,
+        validadaPorPoligono: this.resultadoValidacion?.dentroDePoligono
       };
 
       const guardado = await this.db.saveAsistencia(asistencia);
@@ -226,7 +241,7 @@ export class RegistroAsistenciaComponent implements OnInit {
       }
 
     } catch (error) {
-      console.error('Error al guardar asistencia:', error);
+      console.error('❌ Error al guardar asistencia:', error);
       await this.mostrarAlerta('Error', 'No se pudo guardar la asistencia');
     } finally {
       await loading.dismiss();
@@ -236,10 +251,10 @@ export class RegistroAsistenciaComponent implements OnInit {
   retroceder() {
     if (this.step === 'ubicacion') {
       this.step = 'foto';
-      this.foto = null;
+      this.ubicacion = null;
+      this.resultadoValidacion = null;
     } else if (this.step === 'confirmacion') {
       this.step = 'ubicacion';
-      this.ubicacion = null;
     }
   }
 
@@ -264,5 +279,14 @@ export class RegistroAsistenciaComponent implements OnInit {
       position: 'top'
     });
     await toast.present();
+  }
+
+  getTurnoLabel(): string {
+    const labels: Record<string, string> = {
+      'mañana': 'Turno Mañana',
+      'tarde': 'Turno Tarde',
+      'noche': 'Turno Noche'
+    };
+    return labels[this.turno] || this.turno;
   }
 }

@@ -42,10 +42,14 @@
   right: 4px;
   width: 16px;
   height: 16px;
-  background: #10b981;
+  background: #ef4444;
   border: 3px solid white;
   border-radius: 50%;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  &.active {
+    background: #10b981;
+  }
 }
 
 .profile-info {
@@ -112,14 +116,9 @@
   align-items: center;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease;
 
   @media (prefers-color-scheme: dark) {
     background: #1e293b;
-  }
-
-  &:active {
-    transform: scale(0.98);
   }
 }
 
@@ -178,15 +177,89 @@
   }
 }
 
-// Turnos Grid
-.turnos-grid {
+// Horario Card
+.horario-card {
+  margin: 0 16px 16px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+
+  @media (prefers-color-scheme: dark) {
+    background: #1e293b;
+  }
+}
+
+.horario-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+
+.horario-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 32px;
+  }
+}
+
+.divider-vertical {
+  width: 2px;
+  height: 50px;
+  background: var(--ion-color-light);
+
+  @media (prefers-color-scheme: dark) {
+    background: #334155;
+  }
+}
+
+.horario-label {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 0 0 4px;
+  font-weight: 500;
+}
+
+.horario-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ion-text-color);
+}
+
+.horario-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--ion-color-light);
+  font-size: 13px;
+  color: var(--ion-color-medium);
+
+  @media (prefers-color-scheme: dark) {
+    border-top-color: #334155;
+  }
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// Registro Buttons
+.registro-buttons {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px;
   padding: 0 16px 16px;
 }
 
-.turno-card {
+.registro-card {
   margin: 0;
   border-radius: 16px;
   overflow: hidden;
@@ -198,25 +271,17 @@
   transition: all 0.3s ease;
   cursor: pointer;
 
-  @media (prefers-color-scheme: dark) {
-    background: #1e293b;
-  }
-
-  &:active {
+  &:not([disabled]):active {
     transform: scale(0.98);
   }
 
-  &.morning {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-    color: white;
-
-    @media (prefers-color-scheme: dark) {
-      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-    }
+  &[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
-  &.afternoon {
-    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  &.entrada-card {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
 
     @media (prefers-color-scheme: dark) {
@@ -224,58 +289,55 @@
     }
   }
 
-  &.night {
-    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+  &.salida-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
 
     @media (prefers-color-scheme: dark) {
-      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    &[disabled] {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
     }
   }
 }
 
-.turno-icon {
-  font-size: 40px;
+.registro-icon {
+  font-size: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border-radius: 16px;
 
   ion-icon {
-    font-size: 32px;
+    font-size: 40px;
   }
 }
 
-.turno-content {
+.registro-content {
   flex: 1;
 
   h4 {
     margin: 0 0 6px;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
   }
 
-  .turno-time {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0 0 8px;
+  p {
+    margin: 0 0 10px;
     font-size: 14px;
-    opacity: 0.95;
-
-    ion-icon {
-      font-size: 16px;
-    }
+    opacity: 0.9;
   }
+}
 
-  ion-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-  }
+.registro-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
 }
 
 // Actions Grid
@@ -317,115 +379,5 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--ion-text-color);
-  }
-}
-
-// Modal Styles
-.modal-content {
-  --background: var(--ion-color-light);
-
-  @media (prefers-color-scheme: dark) {
-    --background: #0f172a;
-  }
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.turno-header {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.turno-modal-icon {
-  font-size: 80px;
-  color: var(--ion-color-primary);
-  margin-bottom: 16px;
-}
-
-.turno-header h2 {
-  margin: 0 0 8px;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ion-text-color);
-}
-
-.turno-fecha {
-  margin: 0;
-  font-size: 14px;
-  color: var(--ion-color-medium);
-  font-weight: 500;
-}
-
-.detail-card {
-  margin: 0 0 24px;
-  border-radius: 16px;
-  padding: 20px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-
-  @media (prefers-color-scheme: dark) {
-    background: #1e293b;
-  }
-}
-
-.detail-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px 0;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--ion-color-light);
-
-    @media (prefers-color-scheme: dark) {
-      border-bottom-color: #334155;
-    }
-  }
-
-  &:first-child {
-    padding-top: 0;
-  }
-
-  &:last-child {
-    padding-bottom: 0;
-  }
-
-  ion-icon {
-    font-size: 24px;
-    color: var(--ion-color-primary);
-    margin-top: 2px;
-  }
-}
-
-.detail-label {
-  margin: 0 0 4px;
-  font-size: 13px;
-  color: var(--ion-color-medium);
-  font-weight: 500;
-}
-
-.detail-value {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--ion-text-color);
-}
-
-.modal-actions {
-  padding-top: 8px;
-}
-
-.start-button {
-  --background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --border-radius: 14px;
-  height: 56px;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-
-  &:active {
-    transform: scale(0.98);
   }
 }

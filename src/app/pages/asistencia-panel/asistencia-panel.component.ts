@@ -1,157 +1,150 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import {
-  IonContent,
-  IonCard,
-  IonCardContent,
-  IonIcon,
-  IonButton,
-  IonModal,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonBadge,
-  AlertController
-} from '@ionic/angular/standalone';
+  IonContent, IonCard, IonCardContent, IonIcon, IonButton,
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonBadge,
+  AlertController, IonModal } from '@ionic/angular/standalone';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { User } from 'src/app/core/models/user.model';
+import { SqliteService } from 'src/app/core/services/sqlite.service';
 
 @Component({
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IonContent,
-    IonCard,
-    IonCardContent,
-    IonIcon,
-    IonButton,
-    IonModal,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonBadge
+  imports: [IonModal,
+    CommonModule, RouterLink, IonContent, IonCard, IonCardContent,
+    IonIcon, IonButton, IonHeader, IonToolbar, IonTitle,
+    IonButtons, IonBadge
   ],
   selector: 'app-asistencia-panel',
   templateUrl: './asistencia-panel.component.html',
   styleUrls: ['./asistencia-panel.component.scss'],
 })
-export class AsistenciaPanelComponent implements OnInit, AfterViewInit {
-  turnoSeleccionado: any = null;
-  presentingElement: any = null;
-  modalOpen: boolean = false;
+export class AsistenciaPanelComponent implements OnInit {
   currentDate: Date = new Date();
-  currentUser: User | null = null;
+  currentUser: any = null;
 
-  turnos = [
-    {
-      titulo: 'Turno Mañana',
-      fecha: new Date(),
-      horario: '8:00 - 12:00',
-      usuario: 'Juan Pérez',
-      tipo: 'morning'
-    },
-    {
-      titulo: 'Turno Tarde',
-      fecha: new Date(),
-      horario: '14:00 - 18:00',
-      usuario: 'Juan Pérez',
-      tipo: 'afternoon'
-    },
-    {
-      titulo: 'Turno Noche',
-      fecha: new Date(),
-      horario: '20:00 - 00:00',
-      usuario: 'Juan Pérez',
-      tipo: 'night'
-    }
-  ];
+  // Control de registros
+  yaRegistroEntrada: boolean = false;
+  yaRegistroSalida: boolean = false;
+  horaEntrada: string = '--:--';
+  horaSalida: string = '--:--';
+
+  // Estadísticas
+  totalAsistenciasMes: number = 0;
 
   constructor(
     private authService: AuthService,
+    private sqlite: SqliteService,
     private router: Router,
     private alertController: AlertController
   ) {}
 
-  ngOnInit() {
-    this.loadUserData();
+  async ngOnInit() {
+    // Cargar datos del usuario
+    await this.loadUserData();
+
+    // Cargar datos de asistencia del día
+    await this.loadAsistenciasHoy();
+
+    // Cargar estadísticas
+    await this.loadEstadisticas();
+
+    // Actualizar fecha cada minuto
     setInterval(() => {
       this.currentDate = new Date();
     }, 60000);
   }
 
-  ngAfterViewInit(): void {
-    this.presentingElement = document.querySelector('ion-app');
+  // Cargar datos del usuario actual
+  async loadUserData() {
+    this.currentUser = this.authService.currentUser;
+    console.log('👤 Usuario actual:', this.currentUser);
   }
 
-  loadUserData() {
-    this.currentUser = this.authService.currentUserValue;
-    console.log('Usuario actual:', this.currentUser);
-  }
-
-  abrirModal(turno: any) {
-    this.turnoSeleccionado = turno;
-    this.modalOpen = true;
-  }
-
-  onWillDismiss() {
-    this.modalOpen = false;
-    this.turnoSeleccionado = null;
-  }
-
-  cancel() {
-    this.modalOpen = false;
-  }
-
-  async comenzarTurno() {
-    console.log('Comenzando turno:', this.turnoSeleccionado);
-
-    // Verificar si ya registró entrada hoy
+  // Cargar asistencias del día de hoy
+  async loadAsistenciasHoy() {
     const userId = this.authService.getCurrentUserId();
     if (!userId) return;
 
-    const yaRegistroEntrada = await this.db.yaRegistroEntrada(userId);
-    const yaRegistroSalida = await this.db.yaRegistroSalida(userId);
+    // Obtener asistencias de hoy
+    const asistencias = await this.sqlite.getAsistenciasHoy(userId);
 
-    let tipo: 'entrada' | 'salida' = 'entrada';
+    // Verificar si ya registró entrada y salida
+    this.yaRegistroEntrada = asistencias.some(a => a.tipo === 'entrada');
+    this.yaRegistroSalida = asistencias.some(a => a.tipo === 'salida');
 
-    if (yaRegistroEntrada && !yaRegistroSalida) {
-      tipo = 'salida';
-    } else if (yaRegistroEntrada && yaRegistroSalida) {
-      await this.alertController.create({
-        header: 'Ya registraste hoy',
-        message: 'Ya has completado tu entrada y salida del día de hoy.',
-        buttons: ['OK']
-      }).then(alert => alert.present());
-      this.modalOpen = false;
+    // Obtener horas de entrada y salida
+    const entrada = asistencias.find(a => a.tipo === 'entrada');
+    const salida = asistencias.find(a => a.tipo === 'salida');
+
+    this.horaEntrada = entrada ? entrada.hora.substring(0, 5) : '--:--';
+    this.horaSalida = salida ? salida.hora.substring(0, 5) : '--:--';
+  }
+
+  // Cargar estadísticas del mes
+  async loadEstadisticas() {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) return;
+
+    const asistencias = await this.sqlite.getAsistenciasByUser(userId);
+
+    // Filtrar asistencias del mes actual
+    const mesActual = new Date().getMonth();
+    const anioActual = new Date().getFullYear();
+
+    const asistenciasMes = asistencias.filter(a => {
+      const fecha = new Date(a.fecha);
+      return fecha.getMonth() === mesActual && fecha.getFullYear() === anioActual;
+    });
+
+    // Contar solo las entradas (para no duplicar)
+    this.totalAsistenciasMes = asistenciasMes.filter(a => a.tipo === 'entrada').length;
+  }
+
+  // Registrar entrada
+  async registrarEntrada() {
+    // Verificar si ya registró entrada
+    if (this.yaRegistroEntrada) {
+      await this.mostrarAlerta(
+        'Ya registraste entrada',
+        'Ya has registrado tu entrada el día de hoy'
+      );
       return;
     }
 
-    this.modalOpen = false;
-
     // Navegar a registro de asistencia
     this.router.navigate(['/registro-asistencia'], {
-      queryParams: {
-        tipo: tipo,
-        turno: this.turnoSeleccionado.titulo
-      }
+      queryParams: { tipo: 'entrada' }
     });
   }
 
-  openMenu() {
-    console.log('Abrir menú');
-    // TODO: Implementar menú lateral
+  // Registrar salida
+  async registrarSalida() {
+    // Verificar si no ha registrado entrada
+    if (!this.yaRegistroEntrada) {
+      await this.mostrarAlerta(
+        'Primero registra entrada',
+        'Debes registrar tu entrada antes de registrar la salida'
+      );
+      return;
+    }
+
+    // Verificar si ya registró salida
+    if (this.yaRegistroSalida) {
+      await this.mostrarAlerta(
+        'Ya registraste salida',
+        'Ya has registrado tu salida el día de hoy'
+      );
+      return;
+    }
+
+    // Navegar a registro de asistencia
+    this.router.navigate(['/registro-asistencia'], {
+      queryParams: { tipo: 'salida' }
+    });
   }
 
+  // Cerrar sesión
   async logout() {
     const alert = await this.alertController.create({
       header: 'Cerrar Sesión',
@@ -172,6 +165,16 @@ export class AsistenciaPanelComponent implements OnInit, AfterViewInit {
       ]
     });
 
+    await alert.present();
+  }
+
+  // Método auxiliar para mostrar alertas
+  private async mostrarAlerta(header: string, message: string) {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
     await alert.present();
   }
 }
