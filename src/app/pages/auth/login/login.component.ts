@@ -61,7 +61,8 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    // Por ahora navegamos directo, después conectaremos con el backend
+    // Por ahora navegamos directo
+
     const { email, password } = this.loginForm.value;
     console.log('Login attempt:', { email, password });
 

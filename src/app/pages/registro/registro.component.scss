@@ -1,0 +1,209 @@
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 16px;
+  margin-bottom: 24px;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--ion-color-light);
+    color: var(--ion-color-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    font-weight: 600;
+  }
+
+  &.active .step-number {
+    background: var(--ion-color-primary);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  &.completed .step-number {
+    background: var(--ion-color-success);
+    color: white;
+  }
+}
+
+.progress-line {
+  flex: 1;
+  height: 3px;
+  background: var(--ion-color-light);
+  margin: 0 8px;
+  transition: all 0.3s ease;
+
+  &.completed {
+    background: var(--ion-color-success);
+  }
+}
+
+.step-content {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.info-card {
+  margin-bottom: 24px;
+
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 20px;
+
+    ion-icon {
+      font-size: 28px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  &.success ion-card-title ion-icon {
+    color: var(--ion-color-success);
+  }
+
+  ion-card-content p {
+    color: var(--ion-color-medium);
+    line-height: 1.6;
+  }
+}
+
+.foto-preview {
+  text-align: center;
+  margin-bottom: 24px;
+
+  img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    margin-bottom: 16px;
+  }
+}
+
+.preview-card {
+  margin-bottom: 24px;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+}
+
+.preview-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.ubicacion-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  .status-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 4px 0;
+    color: var(--ion-color-medium);
+    font-size: 14px;
+  }
+
+  .coords {
+    font-size: 12px;
+    font-family: monospace;
+    background: var(--ion-color-light);
+    padding: 8px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+}
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.resumen-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  ion-icon {
+    font-size: 28px;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+  }
+
+  div {
+    flex: 1;
+
+    strong {
+      display: block;
+      font-size: 13px;
+      color: var(--ion-color-medium);
+      margin-bottom: 4px;
+    }
+
+    ion-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+
+  ion-button {
+    --border-radius: 12px;
+    height: 52px;
+    font-weight: 600;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

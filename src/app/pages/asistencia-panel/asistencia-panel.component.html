@@ -1,14 +1,14 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button>
+      <ion-button (click)="openMenu()">
         <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>Panel de Asistencia</ion-title>
     <ion-buttons slot="end">
-      <ion-button>
-        <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+      <ion-button (click)="logout()">
+        <ion-icon slot="icon-only" name="log-out-outline" color="danger"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

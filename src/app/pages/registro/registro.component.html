@@ -1,0 +1,215 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/panel-asistencia"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      Registrar {{ tipo === 'entrada' ? 'Entrada' : 'Salida' }}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="progress-indicator">
+    <div class="progress-step" [class.active]="step === 'foto'" [class.completed]="foto !== null">
+      <div class="step-number">1</div>
+      <div class="step-label">Foto</div>
+    </div>
+    <div class="progress-line" [class.completed]="foto !== null"></div>
+    <div class="progress-step" [class.active]="step === 'ubicacion'" [class.completed]="ubicacion !== null">
+      <div class="step-number">2</div>
+      <div class="step-label">Ubicación</div>
+    </div>
+    <div class="progress-line" [class.completed]="ubicacion !== null && ubicacionValida"></div>
+    <div class="progress-step" [class.active]="step === 'confirmacion'" [class.completed]="false">
+      <div class="step-number">3</div>
+      <div class="step-label">Confirmar</div>
+    </div>
+  </div>
+
+  <div *ngIf="step === 'foto'" class="step-content">
+    <ion-card class="info-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="camera-outline"></ion-icon>
+          Toma una foto
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Se requiere una foto para verificar tu identidad al momento del registro.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="foto-preview" *ngIf="foto">
+      <img [src]="foto" alt="Foto capturada">
+      <ion-button fill="clear" color="danger" (click)="foto = null">
+        <ion-icon name="close-circle" slot="start"></ion-icon>
+        Tomar otra
+      </ion-button>
+    </div>
+
+    <div class="action-buttons">
+      <ion-button
+        expand="block"
+        size="large"
+        (click)="tomarFoto()"
+        [disabled]="loading">
+        <ion-spinner *ngIf="loading" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!loading" name="camera" slot="start"></ion-icon>
+        {{ foto ? 'Retomar Foto' : 'Tomar Foto' }}
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="cancelar()">
+        Cancelar
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="step === 'ubicacion'" class="step-content">
+    <ion-card class="info-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="location-outline"></ion-icon>
+          Verificar ubicación
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Necesitamos verificar que estés en la ubicación permitida para registrar tu asistencia.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="preview-card" *ngIf="foto">
+      <img [src]="foto" alt="Foto" class="preview-image">
+    </ion-card>
+
+    <ion-card *ngIf="ubicacion">
+      <ion-card-content>
+        <div class="ubicacion-info">
+          <ion-icon
+            [name]="ubicacionValida ? 'checkmark-circle' : 'close-circle'"
+            [color]="ubicacionValida ? 'success' : 'danger'"
+            class="status-icon">
+          </ion-icon>
+          <div>
+            <h3>{{ ubicacionValida ? '✅ Ubicación válida' : '❌ Fuera de rango' }}</h3>
+            <p *ngIf="!ubicacionValida">Distancia: {{ distancia.toFixed(0) }} metros</p>
+            <p class="coords">
+              Lat: {{ ubicacion.latitude | number:'1.4-4' }}<br>
+              Lng: {{ ubicacion.longitude | number:'1.4-4' }}
+            </p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="action-buttons">
+      <ion-button
+        expand="block"
+        size="large"
+        color="primary"
+        (click)="obtenerUbicacion()"
+        *ngIf="!ubicacion">
+        <ion-icon name="navigate" slot="start"></ion-icon>
+        Obtener Ubicación
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="retroceder()">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Volver
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="step === 'confirmacion'" class="step-content">
+    <ion-card class="info-card success">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          ¡Todo listo!
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Revisa los datos antes de confirmar tu registro.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="preview-card">
+      <img [src]="foto" alt="Foto">
+    </ion-card>
+
+    <ion-card>
+      <ion-card-content>
+        <div class="resumen">
+          <div class="resumen-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <div>
+              <strong>Tipo:</strong>
+              <ion-badge [color]="tipo === 'entrada' ? 'primary' : 'success'">
+                {{ tipo === 'entrada' ? 'ENTRADA' : 'SALIDA' }}
+              </ion-badge>
+            </div>
+          </div>
+
+          <div class="resumen-item">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <div>
+              <strong>Fecha:</strong>
+              {{ Date.now() | date: 'fullDate' }}
+            </div>
+          </div>
+
+          <div class="resumen-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <div>
+              <strong>Hora:</strong>
+              {{ Date.now() | date: 'shortTime' }}
+            </div>
+          </div>
+
+          <div class="resumen-item">
+            <ion-icon name="location-outline" color="success"></ion-icon>
+            <div>
+              <strong>Ubicación:</strong>
+              Verificada ✓
+            </div>
+          </div>
+
+          <div class="resumen-item" *ngIf="turno">
+            <ion-icon name="sunny-outline"></ion-icon>
+            <div>
+              <strong>Turno:</strong>
+              {{ turno }}
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="action-buttons">
+      <ion-button
+        expand="block"
+        size="large"
+        color="success"
+        (click)="confirmarRegistro()">
+        <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+        Confirmar Registro
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="retroceder()">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Volver
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

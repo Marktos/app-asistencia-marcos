@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
 import { DatabaseService } from '../services/database.service';
 import { User, LoginCredentials, RegisterData } from '../models/user.model';
 
@@ -10,22 +10,45 @@ export class AuthService {
 
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser$: Observable<User | null>;
+  private initialized = false;
 
   constructor(private db: DatabaseService) {
     this.currentUserSubject = new BehaviorSubject<User | null>(null);
     this.currentUser$ = this.currentUserSubject.asObservable();
-    this.loadCurrentUser();
+  }
+
+  async initialize() {
+    if (!this.initialized) {
+      await this.loadCurrentUser();
+      this.initialized = true;
+    }
   }
 
   private async loadCurrentUser() {
-    const user = await this.db.getCurrentUser();
-    if (user) {
-      this.currentUserSubject.next(user);
+    try {
+      const user = await this.db.getCurrentUser();
+      if (user) {
+        console.log('Sesión restaurada:', user.email);
+        this.currentUserSubject.next(user);
+      } else {
+        console.log('No hay sesión activa');
+      }
+    } catch (error) {
+      console.error('Error al cargar sesión:', error);
     }
   }
 
   get currentUserValue(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  async isAuthenticatedAsync(): Promise<boolean> {
+    await this.initialize();
+    return this.currentUserValue !== null;
+  }
+
+  isAuthenticated(): boolean {
+    return this.currentUserValue !== null;
   }
 
   async login(credentials: LoginCredentials): Promise<{ success: boolean; message?: string; user?: User }> {
@@ -46,7 +69,7 @@ export class AuthService {
 
       await this.db.setCurrentUser(user);
       this.currentUserSubject.next(user);
-
+      console.log('Login exitoso:', user.email);
       return { success: true, message: 'Login exitoso', user };
     } catch (error) {
       console.error('Error en login:', error);
@@ -81,6 +104,7 @@ export class AuthService {
 
       await this.db.setCurrentUser(newUser);
       this.currentUserSubject.next(newUser);
+      console.log(' Registro exitoso:', newUser.email);
 
       return { success: true, message: 'Registro exitoso', user: newUser };
     } catch (error) {
@@ -92,10 +116,7 @@ export class AuthService {
   async logout(): Promise<void> {
     await this.db.clearCurrentUser();
     this.currentUserSubject.next(null);
-  }
-
-  isAuthenticated(): boolean {
-    return this.currentUserValue !== null;
+    console.log('👋 Sesión cerrada');
   }
 
   getCurrentUserId(): string | null {
