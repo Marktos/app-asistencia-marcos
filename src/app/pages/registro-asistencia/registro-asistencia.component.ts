@@ -7,7 +7,7 @@ import {
   IonSpinner, IonBadge, LoadingController, AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { CameraService } from '../../core/services/camara.service';
-import { GeolocationService, ResultadoValidacion } from '../../core/services/geolocation.service';
+import { GeolocationService } from '../../core/services/geolocation.service';
 import { SqliteService } from 'src/app/core/services/sqlite.service';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -24,17 +24,17 @@ import { AuthService } from '../../core/auth/auth.service';
 })
 export class RegistroAsistenciaComponent implements OnInit {
   tipo: 'entrada' | 'salida' = 'entrada';
-  turno: 'mañana' | 'tarde' | 'noche' = 'mañana';
+  turno: string = 'mañana';
 
   foto: string | null = null;
   ubicacion: any = null;
-  resultadoValidacion: ResultadoValidacion | null = null;
 
   step: 'foto' | 'ubicacion' | 'confirmacion' = 'foto';
   loading: boolean = false;
 
   ubicacionValida: boolean = false;
   distancia: number = 0;
+  ubicacionNombre: string = '';
 
   Date = Date;
 
@@ -51,17 +51,18 @@ export class RegistroAsistenciaComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Obtener parámetros
+    // Obtener parámetros de la URL
     this.route.queryParams.subscribe(params => {
       this.tipo = params['tipo'] || 'entrada';
       this.turno = params['turno'] || 'mañana';
-      console.log('📋 Tipo:', this.tipo);
+      console.log('📋 Tipo de registro:', this.tipo);
     });
 
     // Verificar si ya registró hoy
     await this.verificarRegistroDelDia();
   }
 
+  // Verificar si ya hizo el registro del día
   async verificarRegistroDelDia() {
     const userId = this.auth.getCurrentUserId();
     if (!userId) return;
@@ -87,6 +88,7 @@ export class RegistroAsistenciaComponent implements OnInit {
     }
   }
 
+  // Tomar foto con la cámara
   async tomarFoto() {
     try {
       this.loading = true;
@@ -101,12 +103,13 @@ export class RegistroAsistenciaComponent implements OnInit {
 
     } catch (error) {
       console.error('❌ Error al tomar foto:', error);
-      await this.mostrarAlerta('Error', 'No se pudo tomar la foto');
+      await this.mostrarAlerta('Error', 'No se pudo tomar la foto. Verifica los permisos.');
     } finally {
       this.loading = false;
     }
   }
 
+  // Obtener y validar ubicación
   async obtenerUbicacion() {
     const loading = await this.loadingCtrl.create({
       message: 'Obteniendo ubicación...',
@@ -115,28 +118,24 @@ export class RegistroAsistenciaComponent implements OnInit {
     await loading.present();
 
     try {
-      // Obtener ubicación
+      // Obtener ubicación actual
       this.ubicacion = await this.geolocation.getCurrentPosition();
-      console.log('📍 Ubicación obtenida:', this.ubicacion.coords);
+      console.log('📍 Ubicación obtenida:', this.ubicacion);
 
-      // Validar con polígonos
-      this.resultadoValidacion = await this.geolocation.validarUbicacion(this.ubicacion);
-      this.ubicacionValida = this.resultadoValidacion.valida;
-      this.distancia = this.resultadoValidacion.distancia;
+      // Validar ubicación
+      const resultado = await this.geolocation.validarUbicacion(this.ubicacion);
 
-      console.log('✅ Validación:', this.resultadoValidacion);
+      this.ubicacionValida = resultado.valida;
+      this.distancia = resultado.distancia;
+      this.ubicacionNombre = resultado.ubicacionNombre || '';
+
+      console.log('✅ Resultado validación:', resultado);
 
       if (this.ubicacionValida) {
         this.step = 'confirmacion';
-
-        const mensaje = this.resultadoValidacion.dentroDePoligono
-          ? `Ubicación verificada en ${this.resultadoValidacion.areaNombre}`
-          : `Ubicación válida (${this.resultadoValidacion.distancia.toFixed(0)}m)`;
-
-        await this.mostrarToast(mensaje, 'success');
+        await this.mostrarToast(resultado.mensaje, 'success');
       } else {
-        const mensaje = `Estás a ${this.resultadoValidacion.distancia.toFixed(0)}m del área permitida`;
-        await this.mostrarAlerta('Ubicación inválida', mensaje);
+        await this.mostrarAlerta('Ubicación inválida', resultado.mensaje);
       }
 
     } catch (error: any) {
@@ -150,6 +149,7 @@ export class RegistroAsistenciaComponent implements OnInit {
     }
   }
 
+  // Confirmar y guardar registro de asistencia
   async confirmarRegistro() {
     if (!this.foto || !this.ubicacion || !this.ubicacionValida) {
       await this.mostrarAlerta('Error', 'Faltan datos para completar el registro');
@@ -168,7 +168,7 @@ export class RegistroAsistenciaComponent implements OnInit {
 
       const now = new Date();
 
-      // Crear objeto de asistencia
+      // Preparar objeto de asistencia
       const asistencia = {
         userId: userId,
         fecha: now.toISOString().split('T')[0], // YYYY-MM-DD
@@ -176,14 +176,14 @@ export class RegistroAsistenciaComponent implements OnInit {
         hora: now.toTimeString().split(' ')[0], // HH:mm:ss
         timestamp: now.getTime(),
         ubicacion: {
-          latitud: this.ubicacion.coords.latitude,
-          longitud: this.ubicacion.coords.longitude,
-          precision: this.ubicacion.coords.accuracy
+          latitud: this.ubicacion.latitude,
+          longitud: this.ubicacion.longitude,
+          precision: this.ubicacion.accuracy
         },
         foto: this.foto,
         turno: this.turno,
-        areaNombre: this.resultadoValidacion?.areaNombre || null,
-        validadaPorPoligono: this.resultadoValidacion?.dentroDePoligono || false
+        areaNombre: this.ubicacionNombre || 'Oficina Principal',
+        validadaPorPoligono: false
       };
 
       // Guardar en SQLite
@@ -207,29 +207,22 @@ export class RegistroAsistenciaComponent implements OnInit {
     }
   }
 
+  // Retroceder al paso anterior
   retroceder() {
     if (this.step === 'ubicacion') {
       this.step = 'foto';
       this.ubicacion = null;
-      this.resultadoValidacion = null;
     } else if (this.step === 'confirmacion') {
       this.step = 'ubicacion';
     }
   }
 
+  // Cancelar y volver al panel
   cancelar() {
     this.router.navigate(['/panel-asistencia']);
   }
 
-  getTurnoLabel(): string {
-    const labels: Record<string, string> = {
-      'mañana': 'Turno Mañana',
-      'tarde': 'Turno Tarde',
-      'noche': 'Turno Noche'
-    };
-    return labels[this.turno] || this.turno;
-  }
-
+  // Mostrar alerta
   private async mostrarAlerta(header: string, message: string) {
     const alert = await this.alertCtrl.create({
       header,
@@ -239,6 +232,7 @@ export class RegistroAsistenciaComponent implements OnInit {
     await alert.present();
   }
 
+  // Mostrar toast
   private async mostrarToast(message: string, color: string) {
     const toast = await this.toastCtrl.create({
       message,

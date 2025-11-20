@@ -1,16 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Geolocation, Position } from '@capacitor/geolocation';
-import { booleanPointInPolygon, point } from '@turf/turf';
-import { areasPermitidas, AreaPermitida } from '../config/areas-permitidas';
-
-export interface ResultadoValidacion {
-  valida: boolean;
-  distancia: number;
-  ubicacionPermitida?: AreaPermitida;
-  radioPermitido: number;
-  dentroDePoligono: boolean;
-  areaNombre?: string;
-}
+import { Geolocation } from '@capacitor/geolocation';
 
 @Injectable({
   providedIn: 'root'
@@ -19,161 +8,102 @@ export class GeolocationService {
 
   constructor() {}
 
-  /**
-   * Obtiene la posición actual del usuario
-   */
-  async getCurrentPosition(): Promise<Position> {
-    try {
-      const hasPermission = await this.checkPermissions();
-      if (!hasPermission) {
-        throw new Error('No se otorgaron permisos de ubicación');
-      }
-
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
-      });
-
-      console.log('📍 Posición obtenida:', {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy
-      });
-
-      return position;
-
-    } catch (error: any) {
-      console.error('❌ Error al obtener ubicación:', error);
-
-      if (error.message?.includes('denied')) {
-        throw new Error('Permisos de ubicación denegados');
-      } else if (error.message?.includes('timeout')) {
-        throw new Error('Tiempo de espera agotado. Verifica tu GPS.');
-      } else if (error.message?.includes('unavailable')) {
-        throw new Error('Ubicación no disponible. Activa el GPS.');
-      }
-
-      throw new Error('No se pudo obtener la ubicación');
+  // Obtener la ubicación actual
+async getCurrentPosition(): Promise<any> {
+  try {
+    // Pedimo permisos
+    const hasPermission = await this.checkPermissions();
+    if (!hasPermission) {
+      throw new Error('No se otorgaron permisos de ubicación');
     }
-  }
 
-  /**
-   * Verifica y solicita permisos de ubicación
-   */
+    const USAR_UBICACION_MOCK = true;
+    if (USAR_UBICACION_MOCK) {
+      console.log('Usando ubicación MOCK de General Roca');
+      return {
+        latitude: -39.0333,
+        longitude: -67.5833,
+        accuracy: 10,
+        altitude: null,
+        altitudeAccuracy: null,
+        heading: null,
+        speed: null
+      };
+    }
+
+    // Ubicación real del dispositivo
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000
+    });
+
+    console.log('Ubicación obtenida:', position.coords);
+    return position.coords;
+
+  } catch (error: any) {
+    console.error('Error al obtener ubicación:', error);
+    throw new Error('No se pudo obtener la ubicación');
+  }
+}
+
+  // Verificar los permisos de ubicación
   async checkPermissions(): Promise<boolean> {
     try {
       const permissions = await Geolocation.checkPermissions();
-      console.log('🔐 Permisos de ubicación:', permissions);
 
-      if (permissions.location === 'granted') return true;
+      if (permissions.location === 'granted') {
+        return true;
+      }
 
+      // Solicitamos los permisos
       const requested = await Geolocation.requestPermissions();
       return requested.location === 'granted';
 
     } catch (error) {
-      console.error('❌ Error verificando permisos:', error);
+      console.error('Error al verificar permisos:', error);
       return false;
     }
   }
 
-  /**
-   * Valida si la ubicación está dentro de un ÁREA PERMITIDA (polígono)
-   */
-  async validarUbicacion(position: Position): Promise<ResultadoValidacion> {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
+  // Validar si está cerca de la oficina
+  async validarUbicacion(coords: any): Promise<{
+    valida: boolean;
+    distancia: number;
+    mensaje: string;
+    ubicacionNombre?: string;
+  }> {
+    // Coordenadas de General Roca
+    const oficinaLat = -39.0333;
+    const oficinaLng = -67.5833;
+    const radioPermitido = 500;
 
-    console.log('🔍 Validando ubicación:', { lat, lng });
+    // Calcular diferencias
+    const diffLat = Math.abs(coords.latitude - oficinaLat);
+    const diffLng = Math.abs(coords.longitude - oficinaLng);
 
-    // Punto actual del usuario
-    const puntoUsuario = point([lng, lat]);
+    // Calcular distancia aproximada en metros
+    const distanciaLat = diffLat * 111000;
+    const distanciaLng = diffLng * 111000;
+    const distancia = Math.sqrt((distanciaLat * distanciaLat) + (distanciaLng * distanciaLng));
 
-    // Recorrer todas las áreas permitidas
-    for (const area of areasPermitidas) {
-      const dentro = booleanPointInPolygon(puntoUsuario, area.polygon);
+    console.log('Distancia calculada:', distancia.toFixed(2), 'metros');
+    console.log('Tu ubicación:', coords.latitude, coords.longitude);
+    console.log('Oficina:', oficinaLat, oficinaLng);
 
-      if (dentro) {
-        const distancia = this.calcularDistancia(
-          lat, lng,
-          area.centro.lat, area.centro.lng
-        );
-
-        console.log(`✅ Usuario dentro de: ${area.nombre}`);
-        console.log(`📏 Distancia al centro: ${distancia.toFixed(2)}m`);
-
-        return {
-          valida: true,
-          distancia,
-          ubicacionPermitida: area,
-          radioPermitido: 100,
-          dentroDePoligono: true,
-          areaNombre: area.nombre
-        };
-      }
+    // Validar si está dentro del rango
+    if (distancia <= radioPermitido) {
+      return {
+        valida: true,
+        distancia: distancia,
+        mensaje: 'Ubicación válida en Oficina Principal',
+        ubicacionNombre: 'Oficina Principal'
+      };
+    } else {
+      return {
+        valida: false,
+        distancia: distancia,
+        mensaje: `Estás a ${distancia.toFixed(0)}m de la oficina. Debes estar dentro de ${radioPermitido}m`
+      };
     }
-
-    // No coincide con ninguna área → ubicación inválida
-    console.warn('❌ Usuario fuera de todas las áreas permitidas');
-
-    return {
-      valida: false,
-      distancia: 0,
-      radioPermitido: 100,
-      dentroDePoligono: false
-    };
-  }
-
-  /**
-   * Calcula distancia entre dos coordenadas con Haversine
-   */
-  private calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-    const R = 6371e3;
-    const φ1 = lat1 * Math.PI / 180;
-    const φ2 = lat2 * Math.PI / 180;
-    const Δφ = (lat2 - lat1) * Math.PI / 180;
-    const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-    const a =
-      Math.sin(Δφ / 2) ** 2 +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
-
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-
-  /**
-   * Observa cambios de posición en tiempo real
-   */
-  async watchPosition(callback: (position: Position) => void): Promise<string> {
-    return await Geolocation.watchPosition(
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      },
-      (position, err) => {
-        if (err) {
-          console.error('Error en watchPosition:', err);
-          return;
-        }
-        if (position) {
-          callback(position);
-        }
-      }
-    );
-  }
-
-  /**
-   * Detener observación de posición
-   */
-  async clearWatch(id: string): Promise<void> {
-    await Geolocation.clearWatch({ id });
-  }
-
-  /**
-   * Retorna todas las áreas permitidas
-   */
-  getAreasPermitidas(): AreaPermitida[] {
-    return areasPermitidas;
   }
 }

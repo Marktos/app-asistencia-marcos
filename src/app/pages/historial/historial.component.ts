@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
-  IonButton, IonIcon, IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonButton, IonIcon, IonCard, IonCardContent,
   IonBadge, ModalController
 } from '@ionic/angular/standalone';
 import { SqliteService } from 'src/app/core/services/sqlite.service';
@@ -14,8 +14,8 @@ import { AuthService } from 'src/app/core/auth/auth.service';
   standalone: true,
   imports: [
     CommonModule, RouterLink, IonHeader, IonToolbar, IonTitle, IonContent,
-    IonButtons, IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader,
-    IonCardTitle, IonCardContent, IonBadge
+    IonButtons, IonBackButton, IonButton, IonIcon, IonCard,
+   IonCardContent, IonBadge
   ],
   templateUrl: './historial.component.html',
   styleUrls: ['./historial.component.scss'],
