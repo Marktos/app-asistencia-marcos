@@ -8,45 +8,45 @@ export class GeolocationService {
 
   constructor() {}
 
-  // Obtener la ubicación actual
-async getCurrentPosition(): Promise<any> {
-  try {
-    // Pedimo permisos
-    const hasPermission = await this.checkPermissions();
-    if (!hasPermission) {
-      throw new Error('No se otorgaron permisos de ubicación');
+  // Obtenemos la ubicación actual del dispositivo
+  async getCurrentPosition(): Promise<any> {
+    try {
+      // Verificamos permisos
+      const hasPermission = await this.checkPermissions();
+      if (!hasPermission) {
+        throw new Error('No se otorgaron permisos de ubicación');
+      }
+
+      const USAR_UBICACION_MOCK = true;
+      if (USAR_UBICACION_MOCK) {
+        console.log('Usando ubicación de prueba');
+        return {
+          latitude: -39.0333,
+          longitude: -67.5833,
+          accuracy: 10,
+          altitude: null,
+          altitudeAccuracy: null,
+          heading: null,
+          speed: null
+        };
+      }
+
+      // Obtener ubicación real del GPS
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000
+      });
+
+      console.log('Ubicación obtenida:', position.coords);
+      return position.coords;
+
+    } catch (error: any) {
+      console.error('Error al obtener ubicación:', error);
+      throw new Error('No se pudo obtener la ubicación');
     }
-
-    const USAR_UBICACION_MOCK = true;
-    if (USAR_UBICACION_MOCK) {
-      console.log('Usando ubicación MOCK de General Roca');
-      return {
-        latitude: -39.0333,
-        longitude: -67.5833,
-        accuracy: 10,
-        altitude: null,
-        altitudeAccuracy: null,
-        heading: null,
-        speed: null
-      };
-    }
-
-    // Ubicación real del dispositivo
-    const position = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: true,
-      timeout: 10000
-    });
-
-    console.log('Ubicación obtenida:', position.coords);
-    return position.coords;
-
-  } catch (error: any) {
-    console.error('Error al obtener ubicación:', error);
-    throw new Error('No se pudo obtener la ubicación');
   }
-}
 
-  // Verificar los permisos de ubicación
+  // Verificamos y solicitamos permisos de ubicación
   async checkPermissions(): Promise<boolean> {
     try {
       const permissions = await Geolocation.checkPermissions();
@@ -55,7 +55,7 @@ async getCurrentPosition(): Promise<any> {
         return true;
       }
 
-      // Solicitamos los permisos
+      // Solicitamos los permisos si no están otorgados
       const requested = await Geolocation.requestPermissions();
       return requested.location === 'granted';
 
@@ -65,32 +65,32 @@ async getCurrentPosition(): Promise<any> {
     }
   }
 
-  // Validar si está cerca de la oficina
+  // Validar si la ubicación está dentro del área permitida
   async validarUbicacion(coords: any): Promise<{
     valida: boolean;
     distancia: number;
     mensaje: string;
     ubicacionNombre?: string;
   }> {
-    // Coordenadas de General Roca
+    // Coordenadas de la oficina
     const oficinaLat = -39.0333;
     const oficinaLng = -67.5833;
-    const radioPermitido = 500;
-
-    // Calcular diferencias
+    const radioPermitido = 500; // metros
     const diffLat = Math.abs(coords.latitude - oficinaLat);
     const diffLng = Math.abs(coords.longitude - oficinaLng);
 
-    // Calcular distancia aproximada en metros
+    // Convertimos a metros
     const distanciaLat = diffLat * 111000;
     const distanciaLng = diffLng * 111000;
+
+    // Calculo distancia total
     const distancia = Math.sqrt((distanciaLat * distanciaLat) + (distanciaLng * distanciaLng));
 
     console.log('Distancia calculada:', distancia.toFixed(2), 'metros');
     console.log('Tu ubicación:', coords.latitude, coords.longitude);
     console.log('Oficina:', oficinaLat, oficinaLng);
 
-    // Validar si está dentro del rango
+    // Verificar si está dentro del rango
     if (distancia <= radioPermitido) {
       return {
         valida: true,

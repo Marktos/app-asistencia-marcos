@@ -16,48 +16,48 @@ export class AuthService {
     this.loadSession();
   }
 
-  // Inicializar base de datos
+  // Inicializar el servicio de autenticación
   async initializeAuth(): Promise<void> {
     await this.sqlite.initializeDatabase();
     await this.loadSession();
   }
 
-  // Cargar sesión guardada
+  // Cargar sesión guardada desde el almacenamiento
   private async loadSession() {
     const { value } = await Preferences.get({ key: 'currentUser' });
     if (value) {
       const user = JSON.parse(value);
       this.currentUserSubject.next(user);
-      console.log('🔐 Sesión restaurada:', user.email);
+      console.log('Sesión restaurada:', user.email);
     }
   }
 
-  // Obtener usuario actual
+  // Obtener el usuario actual
   get currentUser(): any {
     return this.currentUserSubject.value;
   }
 
-  // Verificar autenticación
+  // Verificar si el usuario está autenticado
   isAuthenticated(): boolean {
     return this.currentUser !== null;
   }
 
-  // Login
+  // Iniciar sesión
   async login(email: string, password: string): Promise<{ success: boolean; message: string; user?: any }> {
     try {
-      // Buscar usuario en SQLite
+      // Buscar usuario en la base de datos
       const user = await this.sqlite.getUserByEmail(email);
 
       if (!user) {
         return { success: false, message: 'Usuario no encontrado' };
       }
 
-      // Verificar contraseña (en producción usa bcrypt)
+      // Verificar contraseña
       if (user.password !== password) {
         return { success: false, message: 'Contraseña incorrecta' };
       }
 
-      // Verificar si está activo
+      // Verificar si el usuario está activo
       if (user.activo !== 1) {
         return { success: false, message: 'Usuario inactivo' };
       }
@@ -69,17 +69,17 @@ export class AuthService {
       });
 
       this.currentUserSubject.next(user);
-      console.log('✅ Login exitoso:', user.email);
+      console.log('Login exitoso:', user.email);
 
       return { success: true, message: 'Login exitoso', user };
 
     } catch (error) {
-      console.error('❌ Error en login:', error);
+      console.error('Error en login:', error);
       return { success: false, message: 'Error al iniciar sesión' };
     }
   }
 
-  // Registro
+  // Registrar nuevo usuario
   async register(data: any): Promise<{ success: boolean; message: string; user?: any }> {
     try {
       // Verificar si el email ya existe
@@ -89,10 +89,10 @@ export class AuthService {
         return { success: false, message: 'El email ya está registrado' };
       }
 
-      // Crear usuario en SQLite
+      // Crear usuario en la base de datos
       const userId = await this.sqlite.createUser({
         email: data.email,
-        password: data.password, // En producción, hashear con bcrypt
+        password: data.password,
         nombre: data.nombre,
         apellido: data.apellido,
         dni: data.dni,
@@ -105,7 +105,7 @@ export class AuthService {
         return { success: false, message: 'Error al crear usuario' };
       }
 
-      // Obtener el usuario creado
+      // Obtener el usuario recién creado
       const newUser = await this.sqlite.getUserById(userId);
 
       // Guardar sesión automáticamente
@@ -115,12 +115,12 @@ export class AuthService {
       });
 
       this.currentUserSubject.next(newUser);
-      console.log('✅ Registro exitoso:', newUser.email);
+      console.log('Registro exitoso:', newUser.email);
 
       return { success: true, message: 'Registro exitoso', user: newUser };
 
     } catch (error) {
-      console.error('❌ Error en registro:', error);
+      console.error('Error en registro:', error);
       return { success: false, message: 'Error al registrar usuario' };
     }
   }
@@ -129,15 +129,15 @@ export class AuthService {
   async logout(): Promise<void> {
     await Preferences.remove({ key: 'currentUser' });
     this.currentUserSubject.next(null);
-    console.log('👋 Sesión cerrada');
+    console.log('Sesión cerrada');
   }
 
-  // Obtener ID del usuario actual
+  // Obtener el ID del usuario actual
   getCurrentUserId(): number | null {
     return this.currentUser?.id || null;
   }
 
-  // Actualizar perfil
+  // Actualizar datos del perfil
   async updateProfile(updates: any): Promise<boolean> {
     const userId = this.getCurrentUserId();
     if (!userId) return false;

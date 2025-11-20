@@ -7,19 +7,16 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 export class CameraService {
   constructor() {}
 
-  /**
-   * Tomar foto con la cámara del dispositivo
-   * Retorna Base64 string o null
-   */
+  // Sacamos una foto con la cámara del dispositivo
   async takePicture(): Promise<string | null> {
     try {
-      // Verificar permisos
+      // Verificamos los permisos antes de sacar la foto
       const hasPermission = await this.checkCameraPermissions();
       if (!hasPermission) {
         throw new Error('No se otorgaron permisos de cámara');
       }
 
-      // Capturar foto
+      // Sacamos la foto
       const photo = await Camera.getPhoto({
         quality: 80,
         allowEditing: false,
@@ -32,18 +29,18 @@ export class CameraService {
       });
 
       if (photo.base64String) {
-        console.log('📸 Foto capturada correctamente');
+        console.log('Foto capturada correctamente');
         return `data:image/${photo.format};base64,${photo.base64String}`;
       }
 
       return null;
 
     } catch (error: any) {
-      console.error('❌ Error al tomar foto:', error);
+      console.error('Error al tomar foto:', error);
 
-      // Usuario canceló la captura
+      // Si el usuario canceló la foto
       if (error.message === 'User cancelled photos app') {
-        console.log('Usuario canceló la captura');
+        console.log('Usuario canceló la foto');
         return null;
       }
 
@@ -51,9 +48,7 @@ export class CameraService {
     }
   }
 
-  /**
-   * Verificar y solicitar permisos de cámara
-   */
+  // Verificamos y solicitamos los permisos de cámara
   async checkCameraPermissions(): Promise<boolean> {
     try {
       const permissions = await Camera.checkPermissions();
@@ -62,12 +57,12 @@ export class CameraService {
         return true;
       }
 
-      // Solicitar permisos
+      // Solicitamos permisos
       const requested = await Camera.requestPermissions();
       return requested.camera === 'granted' && requested.photos === 'granted';
 
     } catch (error) {
-      console.error('❌ Error al verificar permisos:', error);
+      console.error('Error al verificar permisos:', error);
       return false;
     }
   }
