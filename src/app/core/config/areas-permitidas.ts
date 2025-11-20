@@ -9,15 +9,27 @@ export interface AreaPermitida {
 
 export const areasPermitidas: AreaPermitida[] = [
   {
+    nombre: 'Oficina General Roca',
+    descripcion: 'Área de trabajo General Roca - AMPLIADO PARA PRUEBAS',
+    centro: { lat: -39.0333, lng: -67.5833 },
+    polygon: polygon([[
+      [-67.6200, -38.9800], // Noroeste (más amplio)
+      [-67.5400, -38.9800], // Noreste (más amplio)
+      [-67.5400, -39.0800], // Sureste (más amplio)
+      [-67.6200, -39.0800], // Suroeste (más amplio)
+      [-67.6200, -38.9800]  // Cierra el polígono
+    ]])
+  },
+  {
     nombre: 'Oficina Neuquén',
     descripcion: 'Campus principal Neuquén',
     centro: { lat: -38.9516, lng: -68.0591 },
     polygon: polygon([[
-      [-68.0650, -38.9450], // Noroeste
-      [-68.0530, -38.9450], // Noreste
-      [-68.0530, -38.9580], // Sureste
-      [-68.0650, -38.9580], // Suroeste
-      [-68.0650, -38.9450]  // Cierra el polígono
+      [-68.0650, -38.9450],
+      [-68.0530, -38.9450],
+      [-68.0530, -38.9580],
+      [-68.0650, -38.9580],
+      [-68.0650, -38.9450]
     ]])
   },
   {
@@ -25,23 +37,11 @@ export const areasPermitidas: AreaPermitida[] = [
     descripcion: 'Sucursal Cipolletti',
     centro: { lat: -38.9337, lng: -67.9894 },
     polygon: polygon([[
-      [-67.9950, -38.9280], // Noroeste
-      [-67.9830, -38.9280], // Noreste
-      [-67.9830, -38.9400], // Sureste
-      [-67.9950, -38.9400], // Suroeste
-      [-67.9950, -38.9280]  // Cierra el polígono
-    ]])
-  },
-  {
-    nombre: 'Oficina General Roca',
-    descripcion: 'Sucursal General Roca',
-    centro: { lat: -39.0333, lng: -67.5833 },
-    polygon: polygon([[
-      [-67.5900, -39.0270],
-      [-67.5760, -39.0270],
-      [-67.5760, -39.0400],
-      [-67.5900, -39.0400],
-      [-67.5900, -39.0270]
+      [-67.9950, -38.9280],
+      [-67.9830, -38.9280],
+      [-67.9830, -38.9400],
+      [-67.9950, -38.9400],
+      [-67.9950, -38.9280]
     ]])
   }
 ];

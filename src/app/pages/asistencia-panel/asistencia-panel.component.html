@@ -11,7 +11,7 @@
 
 <ion-content [fullscreen]="true" class="asistencia-content">
 
-  <!-- Profile Card -->
+  <!-- Card del perfil -->
   <div class="profile-section">
     <ion-card class="profile-card">
       <div class="profile-header">
@@ -41,7 +41,7 @@
     </ion-card>
   </div>
 
-  <!-- Quick Stats -->
+  <!-- Estadisticas rapidas -->
   <div class="stats-section">
     <div class="stat-card">
       <ion-icon name="time-outline" class="stat-icon primary"></ion-icon>
@@ -150,7 +150,6 @@
     </ion-card>
   </div>
 
-  <!-- Quick Actions -->
   <div class="section-header">
     <h3 class="section-title">
       <ion-icon name="flash-outline"></ion-icon>
@@ -158,22 +157,10 @@
     </h3>
   </div>
 
-  <div class="actions-grid">
-    <ion-card class="action-card" button routerLink="/historial">
+  <div class="actions-grid-single">
+    <ion-card class="action-card-large" button routerLink="/historial">
       <ion-icon name="list-outline" color="primary"></ion-icon>
-      <p>Historial</p>
-    </ion-card>
-    <ion-card class="action-card" button>
-      <ion-icon name="stats-chart-outline" color="success"></ion-icon>
-      <p>Reportes</p>
-    </ion-card>
-    <ion-card class="action-card" button>
-      <ion-icon name="settings-outline" color="medium"></ion-icon>
-      <p>Perfil</p>
-    </ion-card>
-    <ion-card class="action-card" button>
-      <ion-icon name="help-circle-outline" color="warning"></ion-icon>
-      <p>Ayuda</p>
+      <p>Ver Historial Completo</p>
     </ion-card>
   </div>
 

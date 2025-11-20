@@ -340,44 +340,44 @@
   padding: 6px 12px;
 }
 
-// Actions Grid
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+// Actions Grid - Solo historial
+.actions-grid-single {
   padding: 0 16px 24px;
 }
 
-.action-card {
+.action-card-large {
   margin: 0;
   border-radius: 16px;
-  padding: 20px 12px;
+  padding: 24px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   cursor: pointer;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
 
   @media (prefers-color-scheme: dark) {
-    background: #1e293b;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
 
   ion-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
+    font-size: 36px;
+    color: white;
   }
 
   p {
     margin: 0;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 600;
-    color: var(--ion-text-color);
+    color: white;
   }
 }
